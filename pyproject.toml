@@ -1,0 +1,26 @@
+[project]
+name = "maze-agent"
+version = "0.1.0"
+description = "Autonomous maze-solving agent using Claude Code"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+maze-agent = "maze_agent.cli.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.bandit]
+skips = []
+exclude_dirs = ["tests", "docs"]
+

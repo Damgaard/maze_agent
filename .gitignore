@@ -1,0 +1,21 @@
+# Python specific
+__pycache__
+*.venv
+
+# Generated
+images/*
+!/**/.git_keep
+
+# Secrets & databases
+*.env
+*.env.production
+*.db
+*.db-journal
+
+# Reused AI tooling
+.compile.py
+.prompt.py
+.security.py
+docs/shared_context
+security_log.txt
+prompt_output.md

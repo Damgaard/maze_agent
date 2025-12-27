@@ -1,14 +1,14 @@
-#!/usr/bin/env python3
-"""
-Autonomous maze-solving agent using Claude Code via subprocess.
-Calls 'claude' CLI command to get agent decisions.
-"""
+"""Core maze-solving agent logic."""
 
-import subprocess
 import json
+from typing import Dict, Any
+
+from maze_agent.common.claude_client import call_claude
+from maze_agent.common.action_parser import parse_action
+
 
 # Maze state
-maze_state = {
+maze_state: Dict[str, Any] = {
     'position': 'start_room',
     'solved': False,
     'action_count': 0
@@ -32,64 +32,13 @@ There is only 0 doors visible
 What do you do?"""
 
 
-def call_claude(prompt):
-    """Call Claude via subprocess"""
-    try:
-        # Call claude with the prompt
-        result = subprocess.run(
-            ['claude.cmd', "-p", prompt],
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
-        
-        if result.returncode != 0:
-            print(f"Error calling Claude: {result.stderr}")
-            return None
-            
-        return result.stdout.strip()
-        
-    except subprocess.TimeoutExpired:
-        print("Claude call timed out")
-        return None
-    except FileNotFoundError:
-        print("ERROR: 'claude' command not found. Make sure Claude Code is installed.")
-        return None
-    except Exception as e:
-        print(f"Error: {e}")
-        return None
+def run_agent() -> None:
+    """
+    Main autonomous agent loop.
 
-
-def parse_action(response):
-    """Extract action from Claude's response"""
-    print(f"\nClaude's response:\n{response}\n")
-    
-    try:
-        # Try to find JSON in the response
-        start = response.find('{')
-        end = response.rfind('}') + 1
-        if start >= 0 and end > start:
-            json_str = response[start:end]
-            action = json.loads(json_str)
-            return action
-    except json.JSONDecodeError as e:
-        print(f"JSON parse error: {e}")
-    
-    # Fallback: simple text parsing
-    response_lower = response.lower()
-    if 'navigate' in response_lower:
-        for direction in ['north', 'south', 'east', 'west']:
-            if direction in response_lower:
-                return {"action": "navigate", "direction": direction}
-        return {"action": "navigate", "direction": "north"}
-    elif 'search' in response_lower:
-        return {"action": "search_secrets"}
-    
-    return None
-
-
-def run_agent():
-    """Main autonomous agent loop"""
+    Runs the maze-solving agent until the maze is solved or the maximum
+    number of actions is reached.
+    """
     print("=== AUTONOMOUS MAZE SOLVING AGENT ===")
     print("Using Claude Code via subprocess\n")
     print("=" * 50)
@@ -149,6 +98,3 @@ def run_agent():
         print(f"✅ Maze solved in {maze_state['action_count'] + 1} action(s)!")
     print(f"{'='*50}\n")
 
-
-if __name__ == "__main__":
-    run_agent()
