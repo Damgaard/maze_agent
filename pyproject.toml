@@ -32,5 +32,6 @@ exclude_dirs = ["tests", "docs"]
 [dependency-groups]
 dev = [
     "ruff>=0.14.10",
+    "pytest>=8.3.0",
 ]
 
