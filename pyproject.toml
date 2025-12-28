@@ -9,6 +9,7 @@ dependencies = []
 [project.scripts]
 maze-agent = "maze_agent.cli.main:main"
 solve = "maze_agent.cli.main:main"
+maze-list = "maze_agent.cli.list_mazes:main"
 
 [build-system]
 requires = ["hatchling"]
