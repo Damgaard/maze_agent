@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""
-Autonomous maze-solving agent using Claude Code via subprocess.
+"""Autonomous maze-solving agent using Claude Code via subprocess.
+
 Calls 'claude' CLI command to get agent decisions.
 """
 
-import subprocess
 import json
+import subprocess
 
 # Maze state
 maze_state = {"position": "start_room", "solved": False, "action_count": 0}
@@ -28,11 +28,11 @@ There is only 0 doors visible
 What do you do?"""
 
 
-def call_claude(prompt):
-    """Call Claude via subprocess"""
+def call_claude(prompt: str) -> str | None:
+    """Call Claude via subprocess."""
     try:
         # Call claude with the prompt
-        result = subprocess.run(["claude.cmd", "-p", prompt], capture_output=True, text=True, timeout=60)
+        result = subprocess.run(["claude.cmd", "-p", prompt], capture_output=True, text=True, timeout=60)  # noqa: S603
 
         if result.returncode != 0:
             print(f"Error calling Claude: {result.stderr}")
@@ -51,8 +51,8 @@ def call_claude(prompt):
         return None
 
 
-def parse_action(response):
-    """Extract action from Claude's response"""
+def parse_action(response: str) -> dict | None:
+    """Extract action from Claude's response."""
     print(f"\nClaude's response:\n{response}\n")
 
     try:
@@ -61,8 +61,7 @@ def parse_action(response):
         end = response.rfind("}") + 1
         if start >= 0 and end > start:
             json_str = response[start:end]
-            action = json.loads(json_str)
-            return action
+            return json.loads(json_str)
     except json.JSONDecodeError as e:
         print(f"JSON parse error: {e}")
 
@@ -73,14 +72,15 @@ def parse_action(response):
             if direction in response_lower:
                 return {"action": "navigate", "direction": direction}
         return {"action": "navigate", "direction": "north"}
-    elif "search" in response_lower:
+
+    if "search" in response_lower:
         return {"action": "search_secrets"}
 
     return None
 
 
-def run_agent():
-    """Main autonomous agent loop"""
+def run_agent() -> None:
+    """Run the main autonomous agent loop."""
     print("=== AUTONOMOUS MAZE SOLVING AGENT ===")
     print("Using Claude Code via subprocess\n")
     print("=" * 50)
@@ -122,7 +122,7 @@ def run_agent():
             break
 
         elif action["action"] == "search_secrets":
-            print(f"\n🔍 Executing: Search for secrets")
+            print("\n🔍 Executing: Search for secrets")
             print("Result: No secrets found.")
             current_prompt = "You searched but found no secrets. The door to the NORTH remains your only option."
             print("No secrets found.")

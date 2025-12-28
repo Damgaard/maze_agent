@@ -1,32 +1,33 @@
 """Maze state management for tracking player progress."""
 
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 from maze_agent.common.maze_loader import MazeLoader
 
 
 class MazeState:
     """Manages the current state of the maze game."""
 
-    def __init__(self, maze_number: int = 1):
-        """
-        Initialize maze state.
+    def __init__(self, maze_number: int = 1) -> None:
+        """Initialize maze state.
 
         Args:
             maze_number: The maze to load
+
         """
         self.maze = MazeLoader(maze_number)
         self.current_room = self.maze.get_start_room()
         self.secrets_revealed = False  # Secrets in current room revealed
         self.action_count = 0
-        self.move_history: List[str] = []
+        self.move_history: list[str] = []
         self.solved = False
 
-    def get_current_room_info(self) -> Dict[str, Any]:
-        """
-        Get information about the current room visible to the player.
+    def get_current_room_info(self) -> dict[str, Any]:
+        """Get information about the current room visible to the player.
 
         Returns:
             Dictionary with visible room information
+
         """
         room = self.maze.get_room(self.current_room)
         visible_doors = self.maze.get_visible_doors(self.current_room)
@@ -55,15 +56,15 @@ class MazeState:
             "secrets_revealed": self.secrets_revealed,
         }
 
-    def navigate(self, direction: str) -> Dict[str, Any]:
-        """
-        Attempt to navigate in a direction.
+    def navigate(self, direction: str) -> dict[str, Any]:
+        """Attempt to navigate in a direction.
 
         Args:
             direction: Direction to move (north, south, east, west)
 
         Returns:
             Result dictionary with success status and message
+
         """
         direction = direction.lower()
 
@@ -87,12 +88,12 @@ class MazeState:
 
         return {"success": True, "message": f"Moved {direction} to a new room.", "reached_exit": False}
 
-    def search_secrets(self) -> Dict[str, Any]:
-        """
-        Search for secret doors in the current room.
+    def search_secrets(self) -> dict[str, Any]:
+        """Search for secret doors in the current room.
 
         Returns:
             Result dictionary with success status and message
+
         """
         secret_doors = self.maze.get_secret_doors(self.current_room)
         has_secrets = any(dest is not None for dest in secret_doors.values())
@@ -109,21 +110,21 @@ class MazeState:
                 "message": f"Found secret door(s) to the: {', '.join(secret_directions)}!",
                 "secret_directions": secret_directions,
             }
-        else:
-            return {"success": True, "found_secrets": False, "message": "No secret doors found in this room."}
+
+        return {"success": True, "found_secrets": False, "message": "No secret doors found in this room."}
 
     def get_status_description(self) -> str:
-        """
-        Generate a description of the current game state for the player.
+        """Generate a description of the current game state for the player.
 
         Returns:
             Human-readable status description showing only visible information
+
         """
         room_info = self.get_current_room_info()
 
         # Build status message
         status_lines = []
-        status_lines.append(f"You are in a room.")
+        status_lines.append("You are in a room.")
         status_lines.append(f"There are {room_info['door_count']} door(s) visible.")
 
         if room_info["available_directions"]:

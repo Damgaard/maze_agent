@@ -1,26 +1,24 @@
 """Maze loader and parser for maze files."""
 
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple, List
-import glob
+from typing import Any
 
 
 class MazeLoader:
     """Loads and manages maze configurations."""
 
-    def __init__(self, maze_number: int = 1):
-        """
-        Initialize maze loader.
+    def __init__(self, maze_number: int = 1) -> None:
+        """Initialize maze loader.
 
         Args:
             maze_number: The maze number to load (e.g., 1 for 01_*.txt)
+
         """
         self.maze_number = maze_number
         self.maze_data = self._load_maze(maze_number)
 
     def _find_maze_file(self, maze_number: int) -> Path:
-        """
-        Find the maze file for the given number.
+        """Find the maze file for the given number.
 
         Args:
             maze_number: The maze number to find
@@ -30,6 +28,7 @@ class MazeLoader:
 
         Raises:
             ValueError: If maze file not found
+
         """
         # Get the project root (assuming this file is in src/maze_agent/common/)
         current_file = Path(__file__)
@@ -45,17 +44,17 @@ class MazeLoader:
 
         return matches[0]
 
-    def _parse_maze_file(self, file_path: Path) -> Dict[str, Any]:
-        """
-        Parse a maze file and build the maze structure.
+    def _parse_maze_file(self, file_path: Path) -> dict[str, Any]:
+        """Parse a maze file and build the maze structure.
 
         Args:
             file_path: Path to the maze file
 
         Returns:
             Maze configuration dictionary
+
         """
-        with open(file_path, "r") as f:
+        with file_path.open("r", encoding="utf-8") as f:
             lines = f.readlines()
 
         # Parse header
@@ -97,7 +96,7 @@ class MazeLoader:
                 # Check if there's a room here by looking for ##### pattern
                 if row_idx + 4 < len(grid_lines) and col_idx + 4 < max_len:
                     # Check for top wall #####
-                    top_wall = grid_lines[row_idx][col_idx:col_idx+5]
+                    top_wall = grid_lines[row_idx][col_idx : col_idx + 5]
                     if top_wall == "#####":
                         # Found a room! The center is at row+2, col+2
                         center_row = row_idx + 2
@@ -211,15 +210,15 @@ class MazeLoader:
             "start_room": start_room,
         }
 
-    def _load_maze(self, maze_number: int) -> Dict[str, Any]:
-        """
-        Load maze configuration by number.
+    def _load_maze(self, maze_number: int) -> dict[str, Any]:
+        """Load maze configuration by number.
 
         Args:
             maze_number: The maze to load
 
         Returns:
             Maze configuration dictionary
+
         """
         maze_file = self._find_maze_file(maze_number)
         return self._parse_maze_file(maze_file)
@@ -228,7 +227,7 @@ class MazeLoader:
         """Get the starting room ID."""
         return self.maze_data["start_room"]
 
-    def get_room(self, room_id: str) -> Dict[str, Any]:
+    def get_room(self, room_id: str) -> dict[str, Any]:
         """Get room data by ID."""
         return self.maze_data["rooms"][room_id]
 
@@ -236,11 +235,11 @@ class MazeLoader:
         """Check if a room is the exit."""
         return self.maze_data["rooms"][room_id]["is_exit"]
 
-    def get_visible_doors(self, room_id: str) -> Dict[str, Optional[str]]:
+    def get_visible_doors(self, room_id: str) -> dict[str, str | None]:
         """Get visible doors from a room (not including undiscovered secrets)."""
         return self.maze_data["rooms"][room_id]["doors"]
 
-    def get_secret_doors(self, room_id: str) -> Dict[str, Optional[str]]:
+    def get_secret_doors(self, room_id: str) -> dict[str, str | None]:
         """Get secret doors from a room."""
         return self.maze_data["rooms"][room_id]["secrets"]
 
@@ -249,9 +248,8 @@ class MazeLoader:
         doors = self.get_visible_doors(room_id)
         return sum(1 for dest in doors.values() if dest is not None)
 
-    def navigate(self, current_room: str, direction: str, secrets_revealed: bool = False) -> Optional[str]:
-        """
-        Attempt to navigate in a direction from current room.
+    def navigate(self, current_room: str, direction: str, secrets_revealed: bool = False) -> str | None:
+        """Attempt to navigate in a direction from current room.
 
         Args:
             current_room: Current room ID
@@ -260,6 +258,7 @@ class MazeLoader:
 
         Returns:
             New room ID if movement successful, None otherwise
+
         """
         room = self.get_room(current_room)
 

@@ -4,6 +4,9 @@
       "Edit",
       "MultiEdit",
 
+      "Bash(uv run .compile.py llm)",
+      "Bash(uv run pytest)",
+
       "Read(status.txt)",
       "Write(response.txt)",
       "Write(*.txt)"

@@ -1,12 +1,10 @@
 """Client for calling Claude Code via subprocess."""
 
 import subprocess
-from typing import Optional
 
 
-def call_claude(prompt: str, timeout: int = 60) -> Optional[str]:
-    """
-    Call Claude via subprocess.
+def call_claude(prompt: str, timeout: int = 60) -> str | None:
+    """Call Claude via subprocess.
 
     Args:
         prompt: The prompt to send to Claude.
@@ -14,9 +12,10 @@ def call_claude(prompt: str, timeout: int = 60) -> Optional[str]:
 
     Returns:
         Claude's response as a string, or None if the call failed.
+
     """
     try:
-        result = subprocess.run(["claude.cmd", "-p", prompt], capture_output=True, text=True, timeout=timeout)
+        result = subprocess.run(["claude.cmd", "-p", prompt], capture_output=True, text=True, timeout=timeout)  # noqa: S603
 
         if result.returncode != 0:
             print(f"Error calling Claude: {result.stderr}")

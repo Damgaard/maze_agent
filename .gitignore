@@ -17,6 +17,7 @@ response.txt
 .compile.py
 .prompt.py
 .security.py
+ai_shared
 docs/shared_context
 security_log.txt
 prompt_output.md

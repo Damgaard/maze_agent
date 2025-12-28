@@ -2,6 +2,7 @@
 """Command-line entry point for the maze agent."""
 
 import argparse
+
 from maze_agent.agent import run_agent
 
 

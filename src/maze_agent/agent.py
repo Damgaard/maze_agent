@@ -2,12 +2,9 @@
 
 import json
 from pathlib import Path
-from typing import Dict, Any
 
-from maze_agent.common.claude_client import call_claude
 from maze_agent.common.action_parser import parse_action
 from maze_agent.common.maze_state import MazeState
-
 
 # System prompt template
 SYSTEM_PROMPT = """You are an autonomous maze-solving agent. Your goal is to escape the maze as quickly as possible.
@@ -25,8 +22,7 @@ Choose the best action to solve the maze quickly."""
 
 
 def run_agent_debug(maze_number: int = 1) -> None:
-    """
-    Run the agent in debug mode (manual step-by-step with status.txt/response.txt).
+    """Run the agent in debug mode (manual step-by-step with status.txt/response.txt).
 
     This mode allows manual control over each iteration:
     1. Maintains status.txt as a living document with full history
@@ -36,6 +32,7 @@ def run_agent_debug(maze_number: int = 1) -> None:
 
     Args:
         maze_number: The maze to load (default: 1)
+
     """
     print("=== AUTONOMOUS MAZE SOLVING AGENT (DEBUG MODE) ===")
     print(f"Loading Maze {maze_number}")
@@ -77,7 +74,7 @@ or
 """
 
     status_file.write_text(initial_content, encoding="utf-8")
-    print(f"✓ Initialized status.txt with maze state")
+    print("✓ Initialized status.txt with maze state")
 
     # THE AUTONOMOUS AGENT LOOP (DEBUG MODE)
     max_actions = 20
@@ -104,7 +101,7 @@ or
             print("⚠️  response.txt is empty")
             continue
 
-        print(f"\n📥 Response read from response.txt")
+        print("\n📥 Response read from response.txt")
 
         # STEP 3: Parse the action
         action = parse_action(response)
@@ -232,7 +229,7 @@ or
         with status_file.open("a", encoding="utf-8") as f:
             f.write(update_content)
 
-        print(f"✓ Updated status.txt with action result")
+        print("✓ Updated status.txt with action result")
 
     # Final results
     print(f"\n{'=' * 50}")
@@ -255,22 +252,22 @@ Failed to solve maze in {max_actions} actions.
 
 
 def run_agent_production() -> None:
-    """
-    Run the agent in production mode (API-based).
+    """Run the agent in production mode (API-based).
 
     This mode uses direct API calls for autonomous operation.
+
     """
     raise NotImplementedError("Production mode is not yet implemented. Run in debug mode (default) for now.")
 
 
 def run_agent(production_mode: bool = False, maze_number: int = 1) -> None:
-    """
-    Main entry point for the maze-solving agent.
+    """Run the maze-solving agent.
 
     Args:
         production_mode: If True, runs in production mode (API-based).
                         If False (default), runs in debug mode (step-by-step).
         maze_number: The maze number to solve (default: 1).
+
     """
     if production_mode:
         run_agent_production()

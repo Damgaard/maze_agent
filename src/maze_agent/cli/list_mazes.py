@@ -3,18 +3,18 @@
 
 import re
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 
 
-def parse_maze_header(maze_file: Path) -> Dict[str, Any]:
-    """
-    Parse the header of a maze file to extract metadata.
+def parse_maze_header(maze_file: Path) -> dict[str, Any]:
+    """Parse the header of a maze file to extract metadata.
 
     Args:
         maze_file: Path to the maze file
 
     Returns:
         Dictionary with maze metadata (number, name, description)
+
     """
     try:
         content = maze_file.read_text(encoding="utf-8")
@@ -91,7 +91,7 @@ def list_mazes() -> None:
 
 
 def main() -> None:
-    """Main entry point for the maze-list command."""
+    """Run the maze-list command."""
     list_mazes()
 
 
