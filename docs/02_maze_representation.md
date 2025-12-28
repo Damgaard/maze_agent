@@ -34,7 +34,7 @@ Each maze file contains:
 
 1. **Header**: Title and description
 2. **Visual Grid**: ASCII art representation of the maze
-3. **Legend**: Symbol definitions
+3. **Trailing newline**: Exactly 1 empty line at the end
 
 ### Example Maze File:
 
@@ -43,20 +43,17 @@ Each maze file contains:
 One door to the north leads directly to exit.
 
 #####
-# E #
-#   #
+#...#
+#.E.#
+#...#
 #####
-  #    <- Door North
+  D
 #####
-#   #
-# S #
+#...#
+#.S.#
+#...#
 #####
 
-Legend:
-S = Start position
-E = Exit position
-# = Wall
-(space) = Open floor
 ```
 
 ---
@@ -66,11 +63,32 @@ E = Exit position
 | Symbol | Meaning | Description |
 |--------|---------|-------------|
 | `#` | Wall | Solid barrier, cannot pass through |
-| `S` | Start | Player's starting position |
-| `E` | Exit | Goal position, maze is solved when reached |
-| `X` | Secret Door | Hidden door, only visible after using search_secrets() action |
-| ` ` (space) | Open Floor | Walkable area inside a room |
-| Door Gap | Opening in walls | Absence of `#` character between rooms indicates a door |
+| `.` | Room Floor | Walkable area inside a room |
+| `S` | Start | Player's starting position (center of room) |
+| `E` | Exit | Goal position (center of room), maze is solved when reached |
+| `D` | Door | Visible door connection between rooms (single character in middle) |
+| `X` | Secret Door | Hidden door, only visible after using search_secrets() action (single character in middle) |
+| ` ` (space) | Empty | Area outside the maze structure |
+
+---
+
+## Room Structure
+
+### 3x3 Interior
+
+Every room has a **3x3 interior space**:
+
+```
+#####
+#...#  <- Top row of room interior
+#.S.#  <- Middle row (markers go here)
+#...#  <- Bottom row of room interior
+#####
+```
+
+- Rooms are always enclosed by `#` (walls)
+- Interior is filled with `.` (floor)
+- Markers (`S` or `E`) are placed in the **center position** of the 3x3 grid
 
 ---
 
@@ -78,20 +96,31 @@ E = Exit position
 
 ### Visible Doors
 
-Doors are represented as **gaps in the wall**. Look for missing `#` characters between room boundaries.
+Visible doors are represented by the character **`D`** placed as a single character in the middle position between two rooms.
 
-**Example - Door to the North:**
+**Example - Vertical Door (North/South):**
 ```
 #####
-#   #  <- Room above
+#...#
+#.E.#  <- Room above
+#...#
 #####
-  #    <- Gap = Door North (visible)
+  D    <- Door connection (middle position)
 #####
-#   #  <- Current room
+#...#
+#.S.#  <- Room below
+#...#
 #####
 ```
 
-The gap in the wall (where you'd expect `###` but see ` # `) is a visible door.
+**Example - Horizontal Door (East/West):**
+```
+##### #####
+#...# #...#
+#.S.#D#.E.#  <- Door connection in middle
+#...# #...#
+##### #####
+```
 
 ### Secret Doors
 
@@ -100,11 +129,34 @@ Secret doors are marked with `X` and are **not visible** until the player uses t
 **Example - Secret Door to the North:**
 ```
 #####
-#   #  <- Room above
+#...#
+#.E.#
+#...#
 #####
-  X    <- Secret Door North (hidden until discovered)
+  X    <- Secret Door (hidden until discovered)
 #####
-#   #  <- Current room
+#...#
+#.S.#
+#...#
+#####
+```
+
+### No Connection
+
+When there is no door, the space between rooms shows `#` (walls continue):
+
+**Example - No Door (Blocked):**
+```
+#####
+#...#
+#.E.#
+#...#
+#####
+  #    <- No door, just wall continuation
+#####
+#...#
+#.S.#
+#...#
 #####
 ```
 
@@ -112,46 +164,58 @@ Secret doors are marked with `X` and are **not visible** until the player uses t
 
 ## Reading Room Layouts
 
-### Single Room
+### Single Room (No Doors)
+
 ```
 #####
-# S #
-#   #
+#...#
+#.S.#
+#...#
 #####
 ```
 - A room enclosed by walls (`#`)
-- Start position (`S`) inside
-- All sides are walls (no doors)
+- 3x3 interior with `.` floor
+- Start position (`S`) in the center
+- All sides are walls (no connections)
 
-### Room with North Door
+### Two Rooms with Door
+
 ```
 #####
-# E #
-#   #
+#...#
+#.E.#
+#...#
 #####
-  #    <- Door opening (visible)
+  D    <- Visible door
 #####
-#   #
-# S #
+#...#
+#.S.#
+#...#
 #####
 ```
 - Two vertically stacked rooms
-- Gap in the wall between them = door
+- `D` between them = visible door
 - Player can move from S room to E room by going north
 
-### Room with Multiple Doors
+### 2x2 Grid Example
+
 ```
-#####
-# E #
-#   #
-#####
-  #    <- North door
-#####
-#   # #   <- East door (gap on right)
-#####
-  #    <- South door
-#####
+##### #####
+#...# #...#
+#...#D#.E.#
+#...# #...#
+##### #####
+  D     D
+##### #####
+#...# #...#
+#.S.#D#...#
+#...# #...#
+##### #####
 ```
+- Four rooms in a 2x2 grid
+- Horizontal doors shown as `D` between side-by-side rooms
+- Vertical doors shown as `D` in the row between stacked rooms
+- Each door indicator is a single character in the middle position
 
 ---
 
@@ -159,7 +223,7 @@ Secret doors are marked with `X` and are **not visible** until the player uses t
 
 ### Step-by-Step Guide
 
-1. **Choose a number**: Pick the next available number (e.g., if you have 01-05, create 06)
+1. **Choose a number**: Pick the next available number (e.g., if you have 01-08, create 09)
 
 2. **Design the layout**: Plan rooms and connections on paper first
 
@@ -172,13 +236,16 @@ Secret doors are marked with `X` and are **not visible** until the player uses t
    ```
 
 5. **Draw the maze**:
-   - Use `#` for all walls
-   - Place `S` at the start position
-   - Place `E` at the exit position
-   - Create door gaps by omitting `#` characters
-   - Use `X` for secret doors
+   - Each room is 5 characters wide (`#####`)
+   - Each room has 3x3 interior (`.` for floor)
+   - Place `S` or `E` in the center of their rooms
+   - Use `D` for visible door connections (single character, middle position)
+   - Use `X` for secret door connections (single character, middle position)
+   - Use `#` for wall continuations (no door)
+   - Separate side-by-side rooms with a space column
+   - Separate stacked rooms with a space row
 
-6. **Add the legend**: Always include the symbol legend at the bottom
+6. **End the file**: Ensure exactly 1 empty line at the end
 
 ### Template
 
@@ -187,21 +254,17 @@ Secret doors are marked with `X` and are **not visible** until the player uses t
 [Description of the maze]
 
 #####
-# E #
-#   #
+#...#
+#.E.#
+#...#
 #####
-  #    <- [Direction] door (visible/secret)
+  D
 #####
-#   #
-# S #
+#...#
+#.S.#
+#...#
 #####
 
-Legend:
-S = Start position
-E = Exit position
-# = Wall
-X = Secret door (not visible without searching)
-(space) = Open floor
 ```
 
 ---
@@ -210,11 +273,15 @@ X = Secret door (not visible without searching)
 
 1. **Every maze must have exactly one Start (S) position**
 2. **Every maze must have exactly one Exit (E) position**
-3. **All rooms must be enclosed by walls (`#`)**
-4. **Doors are represented by gaps in walls, not by special characters** (exception: `X` for secret doors)
-5. **Rooms are connected vertically or horizontally, not diagonally**
-6. **A room can have 0-4 doors (North, South, East, West)**
-7. **Secret doors (`X`) should only be discoverable via the search_secrets() action**
+3. **All rooms must have 3x3 interior space using `.` for floor**
+4. **All rooms must be enclosed by walls (`#`)**
+5. **Doors use explicit characters: `D` for visible, `X` for secret**
+6. **Door characters are single characters placed in the middle position between rooms**
+7. **Rooms are connected vertically or horizontally, not diagonally**
+8. **A room can have 0-4 doors (North, South, East, West)**
+9. **Secret doors (`X`) should only be discoverable via the search_secrets() action**
+10. **Files must end with exactly 1 empty line**
+11. **No legend section in maze files**
 
 ---
 
@@ -223,32 +290,47 @@ X = Secret door (not visible without searching)
 ### Dead End Room
 ```
 #####
-#   #
-#   #  <- Only one door (the entrance)
+#...#
+#...#
+#...#
 #####
-  #    <- Door south
+  D    <- Only one door (the entrance)
 ```
-A room with only one exit - the door you came through.
+A room with only one connection - the door you came through.
 
 ### Corridor Room
 ```
-  #    <- Door north
+  D    <- Door north
 #####
-#   #
+#...#
+#...#
+#...#
 #####
-  #    <- Door south
+  D    <- Door south
 ```
 A room with doors on opposite sides, creating a corridor.
 
-### Junction Room
+### Linear Path (3 Rooms)
 ```
-  #    <- Door north
 #####
-#   # #  <- Doors east and west
+#...#
+#.E.#
+#...#
 #####
-  #    <- Door south
+  D
+#####
+#...#
+#...#
+#...#
+#####
+  D
+#####
+#...#
+#.S.#
+#...#
+#####
 ```
-A room with multiple doors, creating choices.
+Three rooms vertically connected, start at bottom, exit at top.
 
 ---
 
@@ -259,10 +341,19 @@ When implementing maze logic, you need to:
 1. **Parse the file** to extract room positions and connections
 2. **Track current room** based on player position
 3. **Check available doors** from current room:
-   - Look for gaps in walls around the current room
+   - Look for `D` characters adjacent to the current room
    - Secret doors (`X`) are only available after search_secrets() is called
-4. **Validate movement**: Only allow movement through visible doors
+4. **Validate movement**: Only allow movement through visible doors (`D` or discovered `X`)
 5. **Check win condition**: Player reached the room with `E`
+
+### Parsing Notes
+
+- Each room occupies 5 columns and 5 rows
+- Room interior is always the middle 3x3 area
+- Door connections are single characters:
+  - For vertical connections: Check the middle position of the row between rooms
+  - For horizontal connections: Check the middle position of the column between rooms
+- Markers (`S`, `E`) are always in the center cell of the 3x3 interior
 
 ---
 
@@ -271,7 +362,7 @@ When implementing maze logic, you need to:
 ### Maze 01: Simple Linear Path
 ```
 01_simple_north.txt
-- Start room has one door north
+- Start room has one door north (D)
 - North leads directly to exit
 - Solution: navigate("north")
 ```
@@ -287,23 +378,20 @@ When implementing maze logic, you need to:
 ### Maze 05: Wrong Path + Secret
 ```
 05_secret_vs_deadend.txt
-- Start has door south (visible) and secret door north
+- Start has door south (D) and secret door north (X)
 - South leads to dead end
 - Secret north leads to exit
 - Solution: search_secrets(), then navigate("north")
 - Wrong solution: navigate("south") leads to dead end
 ```
 
----
-
-## Notes for Implementation
-
-- When parsing mazes, preserve spatial relationships between rooms
-- Empty lines in the visual representation are formatting only
-- Comments (with `<-`) are for human readability, ignore in parsing
-- The legend is documentation, not parsed data
-- Room boundaries are defined by continuous `#` characters
-- A "door" programmatically means the player can issue a navigate(direction) command
+### Maze 06: 2x2 Grid
+```
+06_grid_2x2_connected.txt
+- 2x2 grid with all rooms connected via visible doors
+- Multiple valid paths from start to exit
+- Demonstrates horizontal and vertical door placement
+```
 
 ---
 
@@ -311,13 +399,16 @@ When implementing maze logic, you need to:
 
 **To read a maze:**
 1. Look at the visual grid
-2. Find `S` (start) and `E` (exit)
-3. Identify doors as gaps in `#` walls
-4. Note `X` for secret doors
+2. Find `S` (start) and `E` (exit) in room centers
+3. Identify visible doors as `D` characters
+4. Identify secret doors as `X` characters
+5. Rooms are 5x5 blocks with 3x3 interior
 
 **To create a maze:**
 1. Use naming convention `XX_name.txt`
-2. Draw with `#`, `S`, `E`, and `X` symbols
-3. Gaps in walls = visible doors
-4. Include header and legend
-5. Test that there's a solvable path from S to E
+2. Draw header with title and description
+3. Each room: 5x5 with 3x3 interior using `.` for floor
+4. Place `S` and `E` in center of their rooms
+5. Use `D` for visible doors, `X` for secret doors
+6. End file with exactly 1 empty line
+7. Test that there's a solvable path from S to E

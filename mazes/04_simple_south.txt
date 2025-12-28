@@ -2,17 +2,13 @@
 One door to the south leads directly to exit.
 
 #####
-# S #
-#   #
+#...#
+#.S.#
+#...#
 #####
-  #    <- Door South
+  D
 #####
-#   #
-# E #
+#...#
+#.E.#
+#...#
 #####
-
-Legend:
-S = Start position
-E = Exit position
-# = Wall
-(space) = Open floor

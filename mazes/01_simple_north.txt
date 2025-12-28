@@ -2,18 +2,13 @@
 One door to the north leads directly to exit.
 
 #####
-# E #
-#   #
+#...#
+#.E.#
+#...#
 #####
-  #    <- Door North
+  D
 #####
-#   #
-# S #
+#...#
+#.S.#
+#...#
 #####
-
-Legend:
-S = Start position
-E = Exit position
-# = Wall
-(space) = Open floor
-Door shown as opening in walls

@@ -1,0 +1,15 @@
+=== MAZE 06: 2x2 Grid - All Connected ===
+A 2x2 grid of rooms. All rooms are connected via visible doors.
+Start in bottom-left, exit in top-right.
+
+##### #####
+#...# #...#
+#...#D#.E.#
+#...# #...#
+##### #####
+  D     D
+##### #####
+#...# #...#
+#.S.#D#...#
+#...# #...#
+##### #####

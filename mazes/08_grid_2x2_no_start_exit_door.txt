@@ -1,0 +1,15 @@
+=== MAZE 08: 2x2 Grid - No Direct Path ===
+A 2x2 grid where start and exit are vertically adjacent but not connected.
+Start in upper-left, exit in bottom-left. Must go around through other rooms.
+
+##### #####
+#...# #...#
+#.S.#D#...#
+#...# #...#
+##### #####
+  #     D
+##### #####
+#...# #...#
+#.E.#D#...#
+#...# #...#
+##### #####

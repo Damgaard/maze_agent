@@ -2,22 +2,19 @@
 Door north leads to middle room with north/south doors. North exit from middle room is the exit.
 
 #####
-# E #
-#   #
+#...#
+#.E.#
+#...#
 #####
-  #    <- Door North
+  D
 #####
-#   #
-#   #
+#...#
+#...#
+#...#
 #####
-  #    <- Door South
+  D
 #####
-#   #
-# S #
+#...#
+#.S.#
+#...#
 #####
-
-Legend:
-S = Start position
-E = Exit position
-# = Wall
-(space) = Open floor
