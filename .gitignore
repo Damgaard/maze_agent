@@ -3,7 +3,8 @@ __pycache__
 *.venv
 
 # Generated
-images/*
+status.txt
+response.txt
 !/**/.git_keep
 
 # Secrets & databases
