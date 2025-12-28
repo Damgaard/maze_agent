@@ -1,0 +1,23 @@
+=== MAZE 02: Corridor to North ===
+Door north leads to middle room with north/south doors. North exit from middle room is the exit.
+
+#####
+# E #
+#   #
+#####
+  #    <- Door North
+#####
+#   #
+#   #
+#####
+  #    <- Door South
+#####
+#   #
+# S #
+#####
+
+Legend:
+S = Start position
+E = Exit position
+# = Wall
+(space) = Open floor

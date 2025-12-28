@@ -13,11 +13,17 @@ def main() -> None:
         action="store_true",
         help="Run in production mode (uses API calls)"
     )
+    parser.add_argument(
+        "--maze",
+        type=int,
+        default=1,
+        help="Maze number to solve (default: 1)"
+    )
 
     args = parser.parse_args()
 
-    # Run the agent with the selected mode
-    run_agent(production_mode=args.prod)
+    # Run the agent with the selected mode and maze
+    run_agent(production_mode=args.prod, maze_number=args.maze)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,18 @@
+=== MAZE 04: Simple South Exit ===
+One door to the south leads directly to exit.
+
+#####
+# S #
+#   #
+#####
+  #    <- Door South
+#####
+#   #
+# E #
+#####
+
+Legend:
+S = Start position
+E = Exit position
+# = Wall
+(space) = Open floor

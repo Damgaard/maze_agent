@@ -1,0 +1,19 @@
+=== MAZE 01: Simple North Exit ===
+One door to the north leads directly to exit.
+
+#####
+# E #
+#   #
+#####
+  #    <- Door North
+#####
+#   #
+# S #
+#####
+
+Legend:
+S = Start position
+E = Exit position
+# = Wall
+(space) = Open floor
+Door shown as opening in walls

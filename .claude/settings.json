@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "MultiEdit",
+
+      "Read(status.txt)",
+      "Write(response.txt)",
+      "Write(*.txt)"
+    ],
+    "deny": []
+  }
+}
