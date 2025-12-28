@@ -16,19 +16,14 @@ def call_claude(prompt: str, timeout: int = 60) -> Optional[str]:
         Claude's response as a string, or None if the call failed.
     """
     try:
-        result = subprocess.run(
-            ['claude.cmd', "-p", prompt],
-            capture_output=True,
-            text=True,
-            timeout=timeout
-        )
-        
+        result = subprocess.run(["claude.cmd", "-p", prompt], capture_output=True, text=True, timeout=timeout)
+
         if result.returncode != 0:
             print(f"Error calling Claude: {result.stderr}")
             return None
-            
+
         return result.stdout.strip()
-        
+
     except subprocess.TimeoutExpired:
         print("Claude call timed out")
         return None
@@ -38,4 +33,3 @@ def call_claude(prompt: str, timeout: int = 60) -> Optional[str]:
     except Exception as e:
         print(f"Error: {e}")
         return None
-

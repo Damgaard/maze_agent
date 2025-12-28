@@ -33,112 +33,112 @@ class MazeLoader:
         # Maze definitions based on mazes/*.txt files
         mazes = {
             1: {
-                'name': 'Simple North Exit',
-                'description': 'One door to the north leads directly to exit.',
-                'rooms': {
-                    'start': {
-                        'is_start': True,
-                        'is_exit': False,
-                        'doors': {'north': 'exit', 'south': None, 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
+                "name": "Simple North Exit",
+                "description": "One door to the north leads directly to exit.",
+                "rooms": {
+                    "start": {
+                        "is_start": True,
+                        "is_exit": False,
+                        "doors": {"north": "exit", "south": None, "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
                     },
-                    'exit': {
-                        'is_start': False,
-                        'is_exit': True,
-                        'doors': {'north': None, 'south': 'start', 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
-                    }
+                    "exit": {
+                        "is_start": False,
+                        "is_exit": True,
+                        "doors": {"north": None, "south": "start", "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
+                    },
                 },
-                'start_room': 'start'
+                "start_room": "start",
             },
             2: {
-                'name': 'Corridor to North',
-                'description': 'Door north leads to middle room with north/south doors.',
-                'rooms': {
-                    'start': {
-                        'is_start': True,
-                        'is_exit': False,
-                        'doors': {'north': 'middle', 'south': None, 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
+                "name": "Corridor to North",
+                "description": "Door north leads to middle room with north/south doors.",
+                "rooms": {
+                    "start": {
+                        "is_start": True,
+                        "is_exit": False,
+                        "doors": {"north": "middle", "south": None, "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
                     },
-                    'middle': {
-                        'is_start': False,
-                        'is_exit': False,
-                        'doors': {'north': 'exit', 'south': 'start', 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
+                    "middle": {
+                        "is_start": False,
+                        "is_exit": False,
+                        "doors": {"north": "exit", "south": "start", "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
                     },
-                    'exit': {
-                        'is_start': False,
-                        'is_exit': True,
-                        'doors': {'north': None, 'south': 'middle', 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
-                    }
+                    "exit": {
+                        "is_start": False,
+                        "is_exit": True,
+                        "doors": {"north": None, "south": "middle", "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
+                    },
                 },
-                'start_room': 'start'
+                "start_room": "start",
             },
             3: {
-                'name': 'Secret Door North',
-                'description': 'No visible doors. Secret door north leads to exit.',
-                'rooms': {
-                    'start': {
-                        'is_start': True,
-                        'is_exit': False,
-                        'doors': {'north': None, 'south': None, 'east': None, 'west': None},
-                        'secrets': {'north': 'exit', 'south': None, 'east': None, 'west': None}
+                "name": "Secret Door North",
+                "description": "No visible doors. Secret door north leads to exit.",
+                "rooms": {
+                    "start": {
+                        "is_start": True,
+                        "is_exit": False,
+                        "doors": {"north": None, "south": None, "east": None, "west": None},
+                        "secrets": {"north": "exit", "south": None, "east": None, "west": None},
                     },
-                    'exit': {
-                        'is_start': False,
-                        'is_exit': True,
-                        'doors': {'north': None, 'south': 'start', 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
-                    }
+                    "exit": {
+                        "is_start": False,
+                        "is_exit": True,
+                        "doors": {"north": None, "south": "start", "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
+                    },
                 },
-                'start_room': 'start'
+                "start_room": "start",
             },
             4: {
-                'name': 'Simple South Exit',
-                'description': 'One door to the south leads directly to exit.',
-                'rooms': {
-                    'start': {
-                        'is_start': True,
-                        'is_exit': False,
-                        'doors': {'north': None, 'south': 'exit', 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
+                "name": "Simple South Exit",
+                "description": "One door to the south leads directly to exit.",
+                "rooms": {
+                    "start": {
+                        "is_start": True,
+                        "is_exit": False,
+                        "doors": {"north": None, "south": "exit", "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
                     },
-                    'exit': {
-                        'is_start': False,
-                        'is_exit': True,
-                        'doors': {'north': 'start', 'south': None, 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
-                    }
+                    "exit": {
+                        "is_start": False,
+                        "is_exit": True,
+                        "doors": {"north": "start", "south": None, "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
+                    },
                 },
-                'start_room': 'start'
+                "start_room": "start",
             },
             5: {
-                'name': 'Secret vs Dead End',
-                'description': 'Door south leads to dead end. Secret north leads to exit.',
-                'rooms': {
-                    'start': {
-                        'is_start': True,
-                        'is_exit': False,
-                        'doors': {'north': None, 'south': 'deadend', 'east': None, 'west': None},
-                        'secrets': {'north': 'exit', 'south': None, 'east': None, 'west': None}
+                "name": "Secret vs Dead End",
+                "description": "Door south leads to dead end. Secret north leads to exit.",
+                "rooms": {
+                    "start": {
+                        "is_start": True,
+                        "is_exit": False,
+                        "doors": {"north": None, "south": "deadend", "east": None, "west": None},
+                        "secrets": {"north": "exit", "south": None, "east": None, "west": None},
                     },
-                    'deadend': {
-                        'is_start': False,
-                        'is_exit': False,
-                        'doors': {'north': 'start', 'south': None, 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
+                    "deadend": {
+                        "is_start": False,
+                        "is_exit": False,
+                        "doors": {"north": "start", "south": None, "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
                     },
-                    'exit': {
-                        'is_start': False,
-                        'is_exit': True,
-                        'doors': {'north': None, 'south': 'start', 'east': None, 'west': None},
-                        'secrets': {'north': None, 'south': None, 'east': None, 'west': None}
-                    }
+                    "exit": {
+                        "is_start": False,
+                        "is_exit": True,
+                        "doors": {"north": None, "south": "start", "east": None, "west": None},
+                        "secrets": {"north": None, "south": None, "east": None, "west": None},
+                    },
                 },
-                'start_room': 'start'
-            }
+                "start_room": "start",
+            },
         }
 
         if maze_number not in mazes:
@@ -148,23 +148,23 @@ class MazeLoader:
 
     def get_start_room(self) -> str:
         """Get the starting room ID."""
-        return self.maze_data['start_room']
+        return self.maze_data["start_room"]
 
     def get_room(self, room_id: str) -> Dict[str, Any]:
         """Get room data by ID."""
-        return self.maze_data['rooms'][room_id]
+        return self.maze_data["rooms"][room_id]
 
     def is_exit(self, room_id: str) -> bool:
         """Check if a room is the exit."""
-        return self.maze_data['rooms'][room_id]['is_exit']
+        return self.maze_data["rooms"][room_id]["is_exit"]
 
     def get_visible_doors(self, room_id: str) -> Dict[str, Optional[str]]:
         """Get visible doors from a room (not including undiscovered secrets)."""
-        return self.maze_data['rooms'][room_id]['doors']
+        return self.maze_data["rooms"][room_id]["doors"]
 
     def get_secret_doors(self, room_id: str) -> Dict[str, Optional[str]]:
         """Get secret doors from a room."""
-        return self.maze_data['rooms'][room_id]['secrets']
+        return self.maze_data["rooms"][room_id]["secrets"]
 
     def count_visible_doors(self, room_id: str) -> int:
         """Count the number of visible doors in a room."""
@@ -186,13 +186,13 @@ class MazeLoader:
         room = self.get_room(current_room)
 
         # Check visible doors first
-        destination = room['doors'].get(direction)
+        destination = room["doors"].get(direction)
         if destination:
             return destination
 
         # Check secret doors if revealed
         if secrets_revealed:
-            destination = room['secrets'].get(direction)
+            destination = room["secrets"].get(direction)
             if destination:
                 return destination
 

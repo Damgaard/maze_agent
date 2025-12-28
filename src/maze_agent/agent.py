@@ -50,21 +50,21 @@ def run_agent_debug(maze_number: int = 1) -> None:
 
     # STEP 0: Initialize status.txt with header and initial state
     initial_situation = maze.get_status_description()
-    initial_content = f"""{'='*70}
+    initial_content = f"""{"=" * 70}
 MAZE SOLVING SESSION - MAZE {maze_number}
-{'='*70}
+{"=" * 70}
 
 {SYSTEM_PROMPT}
 
-{'='*70}
+{"=" * 70}
 INITIAL STATE
-{'='*70}
+{"=" * 70}
 
 {initial_situation}
 
-{'='*70}
+{"=" * 70}
 INSTRUCTIONS FOR NEXT ACTION
-{'='*70}
+{"=" * 70}
 
 What do you do?
 
@@ -76,15 +76,15 @@ or
 
 """
 
-    status_file.write_text(initial_content, encoding='utf-8')
+    status_file.write_text(initial_content, encoding="utf-8")
     print(f"✓ Initialized status.txt with maze state")
 
     # THE AUTONOMOUS AGENT LOOP (DEBUG MODE)
     max_actions = 20
     while not maze.solved and maze.action_count < max_actions:
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"ITERATION {maze.action_count + 1}")
-        print(f"{'='*50}")
+        print(f"{'=' * 50}")
 
         # STEP 1: Wait for user to press Enter
         print("\n📋 Next steps:")
@@ -98,7 +98,7 @@ or
             print("⚠️  response.txt not found. Please ensure Claude saved the response.")
             continue
 
-        response = response_file.read_text(encoding='utf-8').strip()
+        response = response_file.read_text(encoding="utf-8").strip()
 
         if not response:
             print("⚠️  response.txt is empty")
@@ -114,18 +114,18 @@ or
 
             # Append error to status.txt
             error_update = f"""
-{'='*70}
+{"=" * 70}
 ACTION {maze.action_count + 1}: PARSE ERROR
-{'='*70}
+{"=" * 70}
 
 Response received:
 {response}
 
 ERROR: Could not parse valid JSON action. Please respond with valid JSON.
 
-{'='*70}
+{"=" * 70}
 INSTRUCTIONS FOR NEXT ACTION
-{'='*70}
+{"=" * 70}
 
 What do you do?
 
@@ -136,7 +136,7 @@ or
 {{"action": "search_secrets"}}
 
 """
-            with status_file.open('a', encoding='utf-8') as f:
+            with status_file.open("a", encoding="utf-8") as f:
                 f.write(error_update)
 
             continue
@@ -147,36 +147,36 @@ or
         action_description = ""
         result_message = ""
 
-        if action['action'] == 'navigate':
-            direction = action.get('direction', 'unknown')
+        if action["action"] == "navigate":
+            direction = action.get("direction", "unknown")
             action_description = f"Navigate {direction.upper()}"
             print(f"\n✓ Executing: {action_description}")
 
             result = maze.navigate(direction)
-            result_message = result['message']
+            result_message = result["message"]
 
-            if result['success']:
+            if result["success"]:
                 print(f"   {result['message']}")
-                if result.get('reached_exit', False):
+                if result.get("reached_exit", False):
                     print("🎉 MAZE SOLVED! Agent found the exit!\n")
 
                     # Append final success to status.txt
                     final_update = f"""
-{'='*70}
+{"=" * 70}
 ACTION {maze.action_count}: {action_description}
-{'='*70}
+{"=" * 70}
 
 Decision: {json.dumps(action, indent=2)}
 
 Result: {result_message}
 
-{'='*70}
+{"=" * 70}
 MAZE SOLVED!
-{'='*70}
+{"=" * 70}
 
 Total actions: {maze.action_count}
 """
-                    with status_file.open('a', encoding='utf-8') as f:
+                    with status_file.open("a", encoding="utf-8") as f:
                         f.write(final_update)
 
                     break
@@ -184,12 +184,12 @@ Total actions: {maze.action_count}
             else:
                 print(f"   ❌ {result['message']}")
 
-        elif action['action'] == 'search_secrets':
+        elif action["action"] == "search_secrets":
             action_description = "Search for secrets"
             print(f"\n🔍 Executing: {action_description}")
 
             result = maze.search_secrets()
-            result_message = result['message']
+            result_message = result["message"]
             print(f"   {result['message']}")
 
         else:
@@ -201,23 +201,23 @@ Total actions: {maze.action_count}
         new_situation = maze.get_status_description()
 
         update_content = f"""
-{'='*70}
+{"=" * 70}
 ACTION {maze.action_count}: {action_description}
-{'='*70}
+{"=" * 70}
 
 Decision: {json.dumps(action, indent=2)}
 
 Result: {result_message}
 
-{'='*70}
+{"=" * 70}
 CURRENT STATE
-{'='*70}
+{"=" * 70}
 
 {new_situation}
 
-{'='*70}
+{"=" * 70}
 INSTRUCTIONS FOR NEXT ACTION
-{'='*70}
+{"=" * 70}
 
 What do you do?
 
@@ -229,29 +229,29 @@ or
 
 """
 
-        with status_file.open('a', encoding='utf-8') as f:
+        with status_file.open("a", encoding="utf-8") as f:
             f.write(update_content)
 
         print(f"✓ Updated status.txt with action result")
 
     # Final results
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     if not maze.solved:
         print(f"❌ Agent failed to solve the maze in {max_actions} actions.")
 
         # Append failure to status.txt
         failure_update = f"""
-{'='*70}
+{"=" * 70}
 SESSION ENDED - FAILED
-{'='*70}
+{"=" * 70}
 
 Failed to solve maze in {max_actions} actions.
 """
-        with status_file.open('a', encoding='utf-8') as f:
+        with status_file.open("a", encoding="utf-8") as f:
             f.write(failure_update)
     else:
         print(f"✅ Maze solved in {maze.action_count} action(s)!")
-    print(f"{'='*50}\n")
+    print(f"{'=' * 50}\n")
 
 
 def run_agent_production() -> None:
@@ -260,10 +260,7 @@ def run_agent_production() -> None:
 
     This mode uses direct API calls for autonomous operation.
     """
-    raise NotImplementedError(
-        "Production mode is not yet implemented. "
-        "Run in debug mode (default) for now."
-    )
+    raise NotImplementedError("Production mode is not yet implemented. Run in debug mode (default) for now.")
 
 
 def run_agent(production_mode: bool = False, maze_number: int = 1) -> None:
@@ -279,4 +276,3 @@ def run_agent(production_mode: bool = False, maze_number: int = 1) -> None:
         run_agent_production()
     else:
         run_agent_debug(maze_number=maze_number)
-

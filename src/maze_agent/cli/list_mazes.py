@@ -17,12 +17,12 @@ def parse_maze_header(maze_file: Path) -> Dict[str, Any]:
         Dictionary with maze metadata (number, name, description)
     """
     try:
-        content = maze_file.read_text(encoding='utf-8')
-        lines = content.split('\n')
+        content = maze_file.read_text(encoding="utf-8")
+        lines = content.split("\n")
 
         # Extract maze number from filename (XX_name.txt)
         filename = maze_file.name
-        match = re.match(r'(\d+)_', filename)
+        match = re.match(r"(\d+)_", filename)
         if not match:
             return None
 
@@ -30,18 +30,13 @@ def parse_maze_header(maze_file: Path) -> Dict[str, Any]:
 
         # Parse header line: === MAZE XX: Name ===
         header_line = lines[0].strip() if lines else ""
-        name_match = re.search(r'MAZE \d+:\s*(.+?)\s*===', header_line)
+        name_match = re.search(r"MAZE \d+:\s*(.+?)\s*===", header_line)
         maze_name = name_match.group(1) if name_match else "Unknown"
 
         # Description is usually on the second line
         description = lines[1].strip() if len(lines) > 1 else ""
 
-        return {
-            'number': maze_number,
-            'name': maze_name,
-            'description': description,
-            'filename': filename
-        }
+        return {"number": maze_number, "name": maze_name, "description": description, "filename": filename}
 
     except Exception as e:
         print(f"Error parsing {maze_file}: {e}")
@@ -74,7 +69,7 @@ def list_mazes() -> None:
             mazes.append(maze_info)
 
     # Sort by maze number
-    mazes.sort(key=lambda m: m['number'])
+    mazes.sort(key=lambda m: m["number"])
 
     # Display the list
     print("=" * 70)

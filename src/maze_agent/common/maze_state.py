@@ -49,10 +49,10 @@ class MazeState:
                     door_count += 1
 
         return {
-            'door_count': door_count,
-            'available_directions': available_directions,
-            'is_exit': room['is_exit'],
-            'secrets_revealed': self.secrets_revealed
+            "door_count": door_count,
+            "available_directions": available_directions,
+            "is_exit": room["is_exit"],
+            "secrets_revealed": self.secrets_revealed,
         }
 
     def navigate(self, direction: str) -> Dict[str, Any]:
@@ -71,10 +71,7 @@ class MazeState:
         new_room = self.maze.navigate(self.current_room, direction, self.secrets_revealed)
 
         if new_room is None:
-            return {
-                'success': False,
-                'message': f"Cannot go {direction}. There is a wall in that direction."
-            }
+            return {"success": False, "message": f"Cannot go {direction}. There is a wall in that direction."}
 
         # Move successful
         old_room = self.current_room
@@ -86,17 +83,9 @@ class MazeState:
         # Check if we reached the exit
         if self.maze.is_exit(new_room):
             self.solved = True
-            return {
-                'success': True,
-                'message': f"Moved {direction}. You found the EXIT!",
-                'reached_exit': True
-            }
+            return {"success": True, "message": f"Moved {direction}. You found the EXIT!", "reached_exit": True}
 
-        return {
-            'success': True,
-            'message': f"Moved {direction} to a new room.",
-            'reached_exit': False
-        }
+        return {"success": True, "message": f"Moved {direction} to a new room.", "reached_exit": False}
 
     def search_secrets(self) -> Dict[str, Any]:
         """
@@ -113,21 +102,15 @@ class MazeState:
 
         if has_secrets:
             # Find which directions have secrets
-            secret_directions = [
-                direction for direction, dest in secret_doors.items() if dest is not None
-            ]
+            secret_directions = [direction for direction, dest in secret_doors.items() if dest is not None]
             return {
-                'success': True,
-                'found_secrets': True,
-                'message': f"Found secret door(s) to the: {', '.join(secret_directions)}!",
-                'secret_directions': secret_directions
+                "success": True,
+                "found_secrets": True,
+                "message": f"Found secret door(s) to the: {', '.join(secret_directions)}!",
+                "secret_directions": secret_directions,
             }
         else:
-            return {
-                'success': True,
-                'found_secrets': False,
-                'message': "No secret doors found in this room."
-            }
+            return {"success": True, "found_secrets": False, "message": "No secret doors found in this room."}
 
     def get_status_description(self) -> str:
         """
@@ -143,11 +126,11 @@ class MazeState:
         status_lines.append(f"You are in a room.")
         status_lines.append(f"There are {room_info['door_count']} door(s) visible.")
 
-        if room_info['available_directions']:
-            directions_str = ", ".join(room_info['available_directions']).upper()
+        if room_info["available_directions"]:
+            directions_str = ", ".join(room_info["available_directions"]).upper()
             status_lines.append(f"You can see doors to the: {directions_str}")
 
-        if room_info['secrets_revealed']:
+        if room_info["secrets_revealed"]:
             status_lines.append("(You have searched for secrets in this room)")
 
         return "\n".join(status_lines)

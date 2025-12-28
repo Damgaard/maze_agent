@@ -8,17 +8,8 @@ from maze_agent.agent import run_agent
 def main() -> None:
     """Run the maze-solving agent."""
     parser = argparse.ArgumentParser(description="Autonomous maze-solving agent")
-    parser.add_argument(
-        "--prod",
-        action="store_true",
-        help="Run in production mode (uses API calls)"
-    )
-    parser.add_argument(
-        "--maze",
-        type=int,
-        default=1,
-        help="Maze number to solve (default: 1)"
-    )
+    parser.add_argument("--prod", action="store_true", help="Run in production mode (uses API calls)")
+    parser.add_argument("--maze", type=int, default=1, help="Maze number to solve (default: 1)")
 
     args = parser.parse_args()
 
@@ -28,4 +19,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
