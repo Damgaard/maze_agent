@@ -28,7 +28,7 @@ There is only 0 doors visible
 What do you do?"""
 
 
-def call_claude(prompt: str) -> str | None:
+def call_claude_via_cli(prompt: str) -> str | None:
     """Call Claude via subprocess."""
     try:
         # Call claude with the prompt
@@ -96,7 +96,7 @@ def run_agent() -> None:
 
         # STEP 1: Call Claude for decision
         print("🤖 Calling Claude...")
-        response = call_claude(current_prompt)
+        response = call_claude_via_cli(current_prompt)
 
         if not response:
             print("Failed to get response from Claude")

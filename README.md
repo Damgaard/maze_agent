@@ -1,102 +1,91 @@
 # Maze Agent
 
-Autonomous maze-solving agent using Claude Code via subprocess.
-
-## Requirements
-
-- Python 3.13+
-- Claude Code CLI installed and accessible as `claude.cmd`
-- uv (recommended) or pip for package management
+A LLM based Maze solver. Built as a learning experience in agentic development.
 
 ## Installation
-
-### Using uv (recommended)
 
 ```bash
 uv sync
 ```
 
-### Using pip
+## Configuration
 
-```bash
-pip install -e .
-```
+For production mode (API-based), you need to configure your Anthropic API key:
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and add your Anthropic API key:
+   ```
+   ANTHROPIC_API_KEY=your-api-key-here
+   CLAUDE_MODEL=sonnet
+   ```
+
+   Get your API key from: https://console.anthropic.com/
+
+3. (Optional) Choose your Claude model:
+   - `haiku` - Fast and cost-effective (claude-3-5-haiku-20241022)
+   - `sonnet` - Balanced performance (claude-sonnet-4-20250514) **[Default]**
+   - `opus` - Maximum capability (claude-opus-4-5-20251101)
+   - `default` - Same as sonnet
+
+   Models use hardcoded versions to avoid unexpected changes.
 
 ## Usage
 
-Run the maze agent using the command-line interface:
+### Debug Mode (Interactive)
+
+Run the agent in debug mode using Claude Code CLI:
 
 ```bash
-maze-agent
+uv run solve --maze 1
 ```
 
-Or run directly with Python:
+This mode:
+- Uses `status.txt` and `response.txt` files
+- Allows step-by-step interaction
+- Calls Claude Code CLI (`claude.cmd`)
+
+### Production Mode (Autonomous)
+
+Run the agent in production mode using the Anthropic API:
 
 ```bash
-python -m maze_agent.cli.main
+uv run solve --prod --maze 1
 ```
 
-## Development
+This mode:
+- Fully autonomous operation
+- Direct API calls to Claude
+- No file I/O required
+- Requires `ANTHROPIC_API_KEY` in `.env`
 
-### Project Structure
-
-This project follows the standard src package structure:
-
-```
-maze_agent/
-├── .python-version          # Python version specification
-├── pyproject.toml           # Project dependencies and configuration
-├── .gitignore              # Git ignore rules
-├── README.md               # This file
-├── .prompt.py              # Reused prompts across projects
-├── .compile.py             # Linting and cleaning commands
-├── .security.py            # Security scanning commands
-├── .env.example            # Environment variable template
-├── logs/                   # Application logs
-├── backups/                # Project backups
-├── docs/
-│   ├── plans/              # Development plans
-│   │   └── implemented/    # Completed plans
-│   └── shared_context/     # Shared documentation
-└── src/
-    └── maze_agent/
-        ├── __init__.py
-        ├── agent.py        # Core agent logic
-        ├── cli/            # Command-line interface
-        │   ├── __init__.py
-        │   └── main.py     # CLI entry point
-        └── common/         # Shared utilities
-            ├── __init__.py
-            ├── claude_client.py   # Claude API client
-            └── action_parser.py   # Response parser
-```
-
-### Linting and Formatting
-
-Run linting and formatting checks:
+### List Available Mazes
 
 ```bash
-python .compile.py
+uv run maze-list
 ```
 
-### Security Checks
+### Using Different Models
 
-Run security scans:
+To use a different Claude model, set the `CLAUDE_MODEL` environment variable in your `.env` file:
 
 ```bash
-python .security.py
+# Use Haiku for faster, more cost-effective solving
+CLAUDE_MODEL=haiku
+
+# Use Opus for maximum capability
+CLAUDE_MODEL=opus
+
+# Use Sonnet (default)
+CLAUDE_MODEL=sonnet
 ```
 
-## How It Works
+Or set it temporarily for a single run:
+```bash
+CLAUDE_MODEL=opus uv run solve --prod --maze 3
+```
 
-The agent:
-1. Receives a maze scenario description
-2. Calls Claude Code via subprocess to make decisions
-3. Parses Claude's response to extract actions
-4. Executes actions in the maze environment
-5. Repeats until the maze is solved or max iterations reached
-
-## License
-
-MIT
-
+##

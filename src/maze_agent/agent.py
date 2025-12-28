@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from maze_agent.common.action_parser import parse_action
+from maze_agent.common.claude_client import call_claude_via_api, get_model_info
 from maze_agent.common.maze_state import MazeState
 
 # System prompt template
@@ -13,12 +14,16 @@ You have two available tools:
 1. navigate(direction) - Move in a direction: north, south, east, or west
 2. search_secrets() - Search for hidden passages (expensive, use only if stuck)
 
-Respond with ONLY a JSON object in this exact format:
+CRITICAL: You must respond with ONLY a valid JSON object. No explanations, no questions, no additional text.
+
+Required format:
 {"action": "navigate", "direction": "north"}
 or
 {"action": "search_secrets"}
 
-Choose the best action to solve the maze quickly."""
+Valid directions: north, south, east, west
+
+Do not ask questions. Do not explain your reasoning. Only output the JSON action."""
 
 
 def run_agent_debug(maze_number: int = 1) -> None:
@@ -108,6 +113,7 @@ or
 
         if not action:
             print("⚠️  Could not parse valid action from response")
+            raise ValueError("Could not parse valid action from response")
 
             # Append error to status.txt
             error_update = f"""
@@ -251,13 +257,107 @@ Failed to solve maze in {max_actions} actions.
     print(f"{'=' * 50}\n")
 
 
-def run_agent_production() -> None:
+def run_agent_production(maze_number: int = 1) -> None:
     """Run the agent in production mode (API-based).
 
     This mode uses direct API calls for autonomous operation.
 
+    Args:
+        maze_number: The maze to load (default: 1)
+
     """
-    raise NotImplementedError("Production mode is not yet implemented. Run in debug mode (default) for now.")
+    print("=== AUTONOMOUS MAZE SOLVING AGENT (PRODUCTION MODE) ===")
+    print(f"Loading Maze {maze_number}")
+    model_name, model_version = get_model_info()
+    print(f"Using Claude Model: {model_name} ({model_version})")
+    print("Fully autonomous API-based execution\n")
+    print("=" * 50)
+
+    # Initialize maze state
+    maze = MazeState(maze_number=maze_number)
+
+    # Maintain conversation history as list of API messages
+    messages = []
+
+    # THE AUTONOMOUS AGENT LOOP (PRODUCTION MODE)
+    max_actions = 20
+    while not maze.solved and maze.action_count < max_actions:
+        print(f"\n{'=' * 50}")
+        print(f"ACTION {maze.action_count + 1}")
+        print(f"{'=' * 50}")
+
+        # Build user prompt with current state
+        user_message = f"""CURRENT STATE:
+{maze.get_status_description()}
+
+What do you do?"""
+
+        # Add user message to conversation
+        messages.append({"role": "user", "content": user_message})
+
+        # Call Claude API with full conversation history
+        print("🤖 Calling Claude API...")
+        response = call_claude_via_api(messages=messages, timeout=60, system=SYSTEM_PROMPT)
+
+        if not response:
+            print("❌ Failed to get response from Claude API")
+            break
+
+        print(f"📥 Response received")
+
+        # Add assistant response to conversation
+        messages.append({"role": "assistant", "content": response})
+
+        # Parse the action
+        action = parse_action(response)
+
+        if not action:
+            print("⚠️  Could not parse valid action from response")
+            print(f"Response: {response}")
+            raise ValueError("Could not parse valid action from response")
+
+        print(f"🎯 Parsed action: {json.dumps(action, indent=2)}")
+
+        # Execute the action and update state
+        action_description = ""
+        result_message = ""
+
+        if action["action"] == "navigate":
+            direction = action.get("direction", "unknown")
+            action_description = f"Navigate {direction.upper()}"
+            print(f"\n✓ Executing: {action_description}")
+
+            result = maze.navigate(direction)
+            result_message = result["message"]
+
+            if result["success"]:
+                print(f"   {result['message']}")
+                if result.get("reached_exit", False):
+                    print("🎉 MAZE SOLVED! Agent found the exit!\n")
+                    break
+            else:
+                print(f"   ❌ {result['message']}")
+
+        elif action["action"] == "search_secrets":
+            action_description = "Search for secrets"
+            print(f"\n🔍 Executing: {action_description}")
+
+            result = maze.search_secrets()
+            result_message = result["message"]
+            print(f"   {result['message']}")
+
+        else:
+            print(f"⚠️  Unknown action: {action['action']}")
+            action_description = f"Unknown action: {action['action']}"
+            result_message = "ERROR: Unknown action. Use 'navigate' or 'search_secrets'."
+
+    # Final results
+    print(f"\n{'=' * 50}")
+    if not maze.solved:
+        print(f"❌ Agent failed to solve the maze in {max_actions} actions.")
+    else:
+        print(f"✅ Maze solved in {maze.action_count} action(s)!")
+    print(f"{'=' * 50}\n")
 
 
 def run_agent(production_mode: bool = False, maze_number: int = 1) -> None:
@@ -270,6 +370,6 @@ def run_agent(production_mode: bool = False, maze_number: int = 1) -> None:
 
     """
     if production_mode:
-        run_agent_production()
+        run_agent_production(maze_number=maze_number)
     else:
         run_agent_debug(maze_number=maze_number)
