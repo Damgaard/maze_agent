@@ -192,7 +192,6 @@ Total actions: {maze.action_count}
             print(f"\n🔍 Executing: {action_description}")
 
             result = maze.search_secrets()
-            result_message = result["message"]
             print(f"   {result['message']}")
 
         else:
@@ -303,7 +302,7 @@ What do you do?"""
             print("❌ Failed to get response from Claude API")
             break
 
-        print(f"📥 Response received")
+        print("📥 Response received")
 
         # Add assistant response to conversation
         messages.append({"role": "assistant", "content": response})
@@ -320,7 +319,6 @@ What do you do?"""
 
         # Execute the action and update state
         action_description = ""
-        result_message = ""
 
         if action["action"] == "navigate":
             direction = action.get("direction", "unknown")
@@ -328,7 +326,6 @@ What do you do?"""
             print(f"\n✓ Executing: {action_description}")
 
             result = maze.navigate(direction)
-            result_message = result["message"]
 
             if result["success"]:
                 print(f"   {result['message']}")
@@ -343,13 +340,11 @@ What do you do?"""
             print(f"\n🔍 Executing: {action_description}")
 
             result = maze.search_secrets()
-            result_message = result["message"]
             print(f"   {result['message']}")
 
         else:
             print(f"⚠️  Unknown action: {action['action']}")
             action_description = f"Unknown action: {action['action']}"
-            result_message = "ERROR: Unknown action. Use 'navigate' or 'search_secrets'."
 
     # Final results
     print(f"\n{'=' * 50}")

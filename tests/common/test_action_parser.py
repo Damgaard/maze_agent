@@ -1,7 +1,5 @@
 """Tests for action_parser module."""
 
-import pytest
-
 from maze_agent.common.action_parser import parse_action
 
 

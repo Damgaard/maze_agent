@@ -1,7 +1,5 @@
 """Tests for maze_state module."""
 
-import pytest
-
 from maze_agent.common.maze_state import MazeState
 
 

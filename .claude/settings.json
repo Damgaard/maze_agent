@@ -8,6 +8,8 @@
       "Bash(uv run pytest)",
 
       "Read(status.txt)",
+      "Read(docs/shared_context/*)",
+
       "Write(response.txt)",
       "Write(*.txt)"
     ],
