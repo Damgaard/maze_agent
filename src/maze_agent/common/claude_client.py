@@ -102,6 +102,8 @@ def call_claude_via_api(
     # Limit to max 2 tool calls to prevent infinite loops
     max_tool_calls = 2
     tool_call_count = 0
+    total_input_tokens = 0
+    total_output_tokens = 0
 
     while tool_call_count < max_tool_calls:
         # Build API call parameters
@@ -120,6 +122,11 @@ def call_claude_via_api(
             api_params["tools"] = tools
 
         response = client.messages.create(**api_params)
+
+        # Track token usage
+        if hasattr(response, "usage"):
+            total_input_tokens += response.usage.input_tokens
+            total_output_tokens += response.usage.output_tokens
 
         # Check if Claude wants to use a tool
         if response.stop_reason == "tool_use" and tool_executor:
@@ -169,7 +176,12 @@ def call_claude_via_api(
                 text = block.text
                 break
 
-    return {"text": text, "messages": message_list}
+    return {
+        "text": text,
+        "messages": message_list,
+        "input_tokens": total_input_tokens,
+        "output_tokens": total_output_tokens,
+    }
 
 
 def get_model_info() -> tuple[str, str]:
