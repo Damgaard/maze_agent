@@ -113,6 +113,37 @@ class MazeState:
 
         return {"success": True, "found_secrets": False, "message": "No secret doors found in this room."}
 
+    def get_doors(self) -> dict[str, Any]:
+        """Check what doors are available in the current room.
+
+        This is a thinking tool that reveals ONLY non-secret door information.
+        Secret doors must be found via search_secrets() and are NOT shown by this tool.
+
+        Returns:
+            Result dictionary with door information (excluding secret doors)
+
+        """
+        # Get only visible (non-secret) doors
+        visible_doors = self.maze.get_visible_doors(self.current_room)
+        door_count = self.maze.count_visible_doors(self.current_room)
+
+        # List available directions (non-secret only)
+        available_directions = []
+        for direction, destination in visible_doors.items():
+            if destination is not None:
+                available_directions.append(direction)
+
+        if door_count == 0:
+            return {"success": True, "message": "There are no visible doors in this room."}
+
+        directions_str = ", ".join(available_directions).upper()
+        return {
+            "success": True,
+            "message": f"There are {door_count} visible door(s). You can see doors to the: {directions_str}",
+            "door_count": door_count,
+            "available_directions": available_directions,
+        }
+
     def get_status_description(self) -> str:
         """Generate a description of the current game state for the player.
 
@@ -120,18 +151,11 @@ class MazeState:
             Human-readable status description showing only visible information
 
         """
-        room_info = self.get_current_room_info()
-
-        # Build status message
+        # Build status message - LLM must use get_doors() to learn about exits
         status_lines = []
         status_lines.append("You are in a room.")
-        status_lines.append(f"There are {room_info['door_count']} door(s) visible.")
 
-        if room_info["available_directions"]:
-            directions_str = ", ".join(room_info["available_directions"]).upper()
-            status_lines.append(f"You can see doors to the: {directions_str}")
-
-        if room_info["secrets_revealed"]:
+        if self.secrets_revealed:
             status_lines.append("(You have searched for secrets in this room)")
 
         return "\n".join(status_lines)

@@ -51,8 +51,10 @@ def call_claude_via_api(
     timeout: int = 60,
     system: str | None = None,
     messages: list[dict[str, str]] | None = None,
-) -> str | None:
-    """Call Claude via Anthropic API.
+    tools: list[dict] | None = None,
+    tool_executor=None,
+) -> dict:
+    """Call Claude via Anthropic API with tool use support.
 
     Args:
         prompt: The prompt to send to Claude (string). Ignored if messages is provided.
@@ -60,9 +62,14 @@ def call_claude_via_api(
         system: Optional system prompt to set Claude's behavior.
         messages: Optional list of message dicts with 'role' and 'content' keys.
                  If provided, this is used instead of prompt.
+        tools: Optional list of tool definitions for Claude to use.
+        tool_executor: Optional callable that executes tools. Should accept (tool_name, tool_input)
+                      and return the tool result string.
 
     Returns:
-        Claude's response as a string, or None if the call failed.
+        Dictionary with:
+        - 'text': The final text response from Claude
+        - 'messages': The updated messages list including all tool use interactions
 
     """
     # Load environment variables from .env file
@@ -85,29 +92,84 @@ def call_claude_via_api(
 
     # Use provided messages or convert prompt to message
     if messages:
-        message_list = messages
+        message_list = messages.copy()  # Make a copy to avoid mutating the input
     elif prompt:
         message_list = [{"role": "user", "content": prompt}]
     else:
         raise ValueError("Either prompt or messages must be provided")
 
-    # Build API call parameters
-    api_params = {
-        "model": model_version,
-        "max_tokens": 1024,
-        "messages": message_list,
-    }
+    # Tool use loop - keep calling until we get a final text response
+    # Limit to max 2 tool calls to prevent infinite loops
+    max_tool_calls = 2
+    tool_call_count = 0
 
-    # Add system message if provided
-    if system:
-        api_params["system"] = system
+    while tool_call_count < max_tool_calls:
+        # Build API call parameters
+        api_params = {
+            "model": model_version,
+            "max_tokens": 1024,
+            "messages": message_list,
+        }
 
-    response = client.messages.create(**api_params)
+        # Add system message if provided
+        if system:
+            api_params["system"] = system
 
+        # Add tools if provided
+        if tools:
+            api_params["tools"] = tools
+
+        response = client.messages.create(**api_params)
+
+        # Check if Claude wants to use a tool
+        if response.stop_reason == "tool_use" and tool_executor:
+            tool_call_count += 1
+
+            # Extract tool use from response
+            tool_use_block = None
+            for block in response.content:
+                if block.type == "tool_use":
+                    tool_use_block = block
+                    break
+
+            if tool_use_block:
+                # Execute the tool
+                tool_name = tool_use_block.name
+                tool_input = tool_use_block.input
+                tool_result = tool_executor(tool_name, tool_input)
+
+                # Add assistant's response with tool use to messages
+                message_list.append({"role": "assistant", "content": response.content})
+
+                # Add tool result to messages
+                message_list.append({
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": tool_use_block.id,
+                            "content": tool_result,
+                        }
+                    ],
+                })
+
+                # Continue loop to get Claude's response after seeing tool result
+                continue
+
+        # No more tool use (or different stop reason) - we have the final response
+        # Add final assistant response to messages
+        message_list.append({"role": "assistant", "content": response.content})
+        break
+
+    # Extract text from final response
+    text = None
     if response.content and len(response.content) > 0:
-        return response.content[0].text
+        for block in response.content:
+            if hasattr(block, "text"):
+                text = block.text
+                break
 
-    raise ValueError("Empty response from Claude API")
+    return {"text": text, "messages": message_list}
 
 
 def get_model_info() -> tuple[str, str]:

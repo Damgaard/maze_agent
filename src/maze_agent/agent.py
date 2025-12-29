@@ -10,9 +10,17 @@ from maze_agent.common.maze_state import MazeState
 # System prompt template
 SYSTEM_PROMPT = """You are an autonomous maze-solving agent. Your goal is to escape the maze as quickly as possible.
 
-You have two available tools:
+TOOLS:
+- get_doors: Shows ONLY visible (non-secret) doors. Use this to see regular exits.
+
+IMPORTANT NOTES:
+1. get_doors does NOT show secret doors. Secret doors are only revealed by search_secrets().
+2. After finding a secret door with search_secrets(), you can navigate through it even though get_doors didn't show it.
+3. Door information is static. If you already checked doors in a room earlier, reference that from conversation history instead of checking again.
+
+Your available ACTIONS are:
 1. navigate(direction) - Move in a direction: north, south, east, or west
-2. search_secrets() - Search for hidden passages (expensive, use only if stuck)
+2. search_secrets() - Search for hidden passages (use when stuck or when get_doors shows no exits)
 
 CRITICAL: You must respond with ONLY a valid JSON object. No explanations, no questions, no additional text.
 
@@ -24,6 +32,19 @@ or
 Valid directions: north, south, east, west
 
 Do not ask questions. Do not explain your reasoning. Only output the JSON action."""
+
+# Tool definitions for Claude API
+TOOLS = [
+    {
+        "name": "get_doors",
+        "description": "Check what VISIBLE (non-secret) doors are in the current room. This tool does NOT show secret doors - those can only be found using the search_secrets action. This is a thinking tool that doesn't consume an action.",
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    }
+]
 
 
 def run_agent_debug(maze_number: int = 1) -> None:
@@ -278,6 +299,15 @@ def run_agent_production(maze_number: int = 1) -> None:
     # Maintain conversation history as list of API messages
     messages = []
 
+    # Define tool executor function
+    def execute_tool(tool_name: str, tool_input: dict) -> str:
+        """Execute a tool and return the result as a string."""
+        if tool_name == "get_doors":
+            print("   🔧 Tool used: get_doors")
+            result = maze.get_doors()
+            return result["message"]
+        return f"Unknown tool: {tool_name}"
+
     # THE AUTONOMOUS AGENT LOOP (PRODUCTION MODE)
     max_actions = 20
     while not maze.solved and maze.action_count < max_actions:
@@ -294,25 +324,32 @@ What do you do?"""
         # Add user message to conversation
         messages.append({"role": "user", "content": user_message})
 
-        # Call Claude API with full conversation history
+        # Call Claude API with tools - it handles the tool use loop internally
         print("🤖 Calling Claude API...")
-        response = call_claude_via_api(messages=messages, timeout=60, system=SYSTEM_PROMPT)
+        result = call_claude_via_api(
+            messages=messages, timeout=60, system=SYSTEM_PROMPT, tools=TOOLS, tool_executor=execute_tool
+        )
 
-        if not response:
+        if not result:
             print("❌ Failed to get response from Claude API")
             break
 
+        # Get updated messages list (includes all tool use interactions)
+        messages = result["messages"]
+        final_text = result["text"]
+
+        if not final_text:
+            print("❌ No text in final response")
+            continue
+
         print("📥 Response received")
 
-        # Add assistant response to conversation
-        messages.append({"role": "assistant", "content": response})
-
-        # Parse the action
-        action = parse_action(response)
+        # Parse the action from the text
+        action = parse_action(final_text)
 
         if not action:
             print("⚠️  Could not parse valid action from response")
-            print(f"Response: {response}")
+            print(f"Response: {final_text}")
             raise ValueError("Could not parse valid action from response")
 
         print(f"🎯 Parsed action: {json.dumps(action, indent=2)}")
@@ -350,8 +387,19 @@ What do you do?"""
     print(f"\n{'=' * 50}")
     if not maze.solved:
         print(f"❌ Agent failed to solve the maze in {max_actions} actions.")
+
+        with open("messages.txt", "w", encoding="utf-8") as f:
+            f.write("\n".join(str(message) for message in messages))
+
+            f.write("\n\nMaze failed to solve in {max_actions} actions.")
     else:
         print(f"✅ Maze solved in {maze.action_count} action(s)!")
+
+        with open("messages.txt", "w", encoding="utf-8") as f:
+            f.write("\n".join(str(message) for message in messages))
+
+            f.write("\n\nMaze solved in {maze.action_count} action(s)!")
+
     print(f"{'=' * 50}\n")
 
 
