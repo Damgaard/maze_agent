@@ -5,6 +5,7 @@ This is an LLM-based autonomous agent that solves mazes using Claude AI. Built a
 ## Purpose
 
 This project demonstrates:
+
 - **Agentic AI patterns**: Autonomous decision-making loops
 - **LLM tool use**: Claude's tool calling capabilities
 - **State management**: Tracking game state across interactions
@@ -93,24 +94,28 @@ User → CLI → Agent → status.txt → Human → Claude Code CLI → response
 ## Key Components
 
 ### agent.py - The Orchestrator
+
 - **run_agent_production()**: Autonomous API-based execution
 - **run_agent_debug()**: Interactive step-by-step mode
 - Manages conversation history and token tracking
 - Implements the agent loop pattern with action limits
 
 ### maze_state.py - State Management
+
 - Tracks current room, action count, and move history
 - Manages secret door revelation state
 - Provides game status descriptions to the LLM
 - Validates navigation attempts
 
 ### claude_client.py - LLM Communication
+
 - Abstracts Anthropic API interactions
 - Handles tool use loop (multi-turn tool calling)
 - Supports multiple Claude models (Haiku, Sonnet, Opus)
 - Tracks token usage for cost monitoring
 
 ### maze_loader.py - Maze Parser
+
 - Parses ASCII maze files into structured data
 - Identifies rooms, doors, and secret passages
 - Builds navigation graph from visual representation

@@ -19,6 +19,7 @@ XX_descriptive_name.txt
 - **Extension**: Always `.txt`
 
 **Examples:**
+
 - `01_simple_north.txt`
 - `02_corridor_north.txt`
 - `15_complex_labyrinth.txt`
@@ -60,15 +61,15 @@ One door to the north leads directly to exit.
 
 ## Symbol Definitions
 
-| Symbol | Meaning | Description |
-|--------|---------|-------------|
-| `#` | Wall | Solid barrier, cannot pass through |
-| `.` | Room Floor | Walkable area inside a room |
-| `S` | Start | Player's starting position (center of room) |
-| `E` | Exit | Goal position (center of room), maze is solved when reached |
-| `D` | Door | Visible door connection between rooms (single character in middle) |
-| `X` | Secret Door | Hidden door, only visible after using search_secrets() action (single character in middle) |
-| ` ` (space) | Empty | Area outside the maze structure |
+| Symbol      | Meaning     | Description                                                                                |
+| ----------- | ----------- | ------------------------------------------------------------------------------------------ |
+| `#`         | Wall        | Solid barrier, cannot pass through                                                         |
+| `.`         | Room Floor  | Walkable area inside a room                                                                |
+| `S`         | Start       | Player's starting position (center of room)                                                |
+| `E`         | Exit        | Goal position (center of room), maze is solved when reached                                |
+| `D`         | Door        | Visible door connection between rooms (single character in middle)                         |
+| `X`         | Secret Door | Hidden door, only visible after using search_secrets() action (single character in middle) |
+| ` ` (space) | Empty       | Area outside the maze structure                                                            |
 
 ---
 
@@ -99,6 +100,7 @@ Every room has a **3x3 interior space**:
 Visible doors are represented by the character **`D`** placed as a single character in the middle position between two rooms.
 
 **Example - Vertical Door (North/South):**
+
 ```
 #####
 #...#
@@ -114,6 +116,7 @@ Visible doors are represented by the character **`D`** placed as a single charac
 ```
 
 **Example - Horizontal Door (East/West):**
+
 ```
 ##### #####
 #...# #...#
@@ -127,6 +130,7 @@ Visible doors are represented by the character **`D`** placed as a single charac
 Secret doors are marked with `X` and are **not visible** until the player uses the `search_secrets()` action.
 
 **Example - Secret Door to the North:**
+
 ```
 #####
 #...#
@@ -146,6 +150,7 @@ Secret doors are marked with `X` and are **not visible** until the player uses t
 When there is no door, the space between rooms shows `#` (walls continue):
 
 **Example - No Door (Blocked):**
+
 ```
 #####
 #...#
@@ -173,6 +178,7 @@ When there is no door, the space between rooms shows `#` (walls continue):
 #...#
 #####
 ```
+
 - A room enclosed by walls (`#`)
 - 3x3 interior with `.` floor
 - Start position (`S`) in the center
@@ -193,6 +199,7 @@ When there is no door, the space between rooms shows `#` (walls continue):
 #...#
 #####
 ```
+
 - Two vertically stacked rooms
 - `D` between them = visible door
 - Player can move from S room to E room by going north
@@ -212,6 +219,7 @@ When there is no door, the space between rooms shows `#` (walls continue):
 #...# #...#
 ##### #####
 ```
+
 - Four rooms in a 2x2 grid
 - Horizontal doors shown as `D` between side-by-side rooms
 - Vertical doors shown as `D` in the row between stacked rooms
@@ -230,12 +238,14 @@ When there is no door, the space between rooms shows `#` (walls continue):
 3. **Create the file**: Name it `XX_description.txt`
 
 4. **Write the header**:
+
    ```
    === MAZE XX: Description ===
    Brief explanation of the maze layout.
    ```
 
 5. **Draw the maze**:
+
    - Each room is 5 characters wide (`#####`)
    - Each room has 3x3 interior (`.` for floor)
    - Place `S` or `E` in the center of their rooms
@@ -288,6 +298,7 @@ When there is no door, the space between rooms shows `#` (walls continue):
 ## Common Patterns
 
 ### Dead End Room
+
 ```
 #####
 #...#
@@ -296,9 +307,11 @@ When there is no door, the space between rooms shows `#` (walls continue):
 #####
   D    <- Only one door (the entrance)
 ```
+
 A room with only one connection - the door you came through.
 
 ### Corridor Room
+
 ```
   D    <- Door north
 #####
@@ -308,9 +321,11 @@ A room with only one connection - the door you came through.
 #####
   D    <- Door south
 ```
+
 A room with doors on opposite sides, creating a corridor.
 
 ### Linear Path (3 Rooms)
+
 ```
 #####
 #...#
@@ -330,6 +345,7 @@ A room with doors on opposite sides, creating a corridor.
 #...#
 #####
 ```
+
 Three rooms vertically connected, start at bottom, exit at top.
 
 ---
@@ -360,6 +376,7 @@ When implementing maze logic, you need to:
 ## Examples from Existing Mazes
 
 ### Maze 01: Simple Linear Path
+
 ```
 01_simple_north.txt
 - Start room has one door north (D)
@@ -368,6 +385,7 @@ When implementing maze logic, you need to:
 ```
 
 ### Maze 03: Secret Required
+
 ```
 03_secret_north.txt
 - Start room has NO visible doors
@@ -376,6 +394,7 @@ When implementing maze logic, you need to:
 ```
 
 ### Maze 05: Wrong Path + Secret
+
 ```
 05_secret_vs_deadend.txt
 - Start has door south (D) and secret door north (X)
@@ -386,6 +405,7 @@ When implementing maze logic, you need to:
 ```
 
 ### Maze 06: 2x2 Grid
+
 ```
 06_grid_2x2_connected.txt
 - 2x2 grid with all rooms connected via visible doors
@@ -398,6 +418,7 @@ When implementing maze logic, you need to:
 ## Summary
 
 **To read a maze:**
+
 1. Look at the visual grid
 2. Find `S` (start) and `E` (exit) in room centers
 3. Identify visible doors as `D` characters
@@ -405,6 +426,7 @@ When implementing maze logic, you need to:
 5. Rooms are 5x5 blocks with 3x3 interior
 
 **To create a maze:**
+
 1. Use naming convention `XX_name.txt`
 2. Draw header with title and description
 3. Each room: 5x5 with 3x3 interior using `.` for floor
