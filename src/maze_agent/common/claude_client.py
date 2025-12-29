@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+from collections.abc import Callable
 
 import anthropic
 from dotenv import load_dotenv
@@ -52,7 +53,7 @@ def call_claude_via_api(
     system: str | None = None,
     messages: list[dict[str, str]] | None = None,
     tools: list[dict] | None = None,
-    tool_executor=None,
+    tool_executor: Callable[[str, dict], str] | None = None,
 ) -> dict:
     """Call Claude via Anthropic API with tool use support.
 
@@ -149,16 +150,18 @@ def call_claude_via_api(
                 message_list.append({"role": "assistant", "content": response.content})
 
                 # Add tool result to messages
-                message_list.append({
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": tool_use_block.id,
-                            "content": tool_result,
-                        }
-                    ],
-                })
+                message_list.append(
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": tool_use_block.id,
+                                "content": tool_result,
+                            },
+                        ],
+                    },
+                )
 
                 # Continue loop to get Claude's response after seeing tool result
                 continue

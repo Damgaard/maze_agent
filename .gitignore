@@ -5,6 +5,7 @@ __pycache__
 # Generated
 status.txt
 response.txt
+messages.txt
 !/**/.git_keep
 
 # Secrets & databases

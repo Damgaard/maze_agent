@@ -43,7 +43,7 @@ TOOLS = [
             "properties": {},
             "required": [],
         },
-    }
+    },
 ]
 
 
@@ -103,7 +103,7 @@ or
     print("✓ Initialized status.txt with maze state")
 
     # THE AUTONOMOUS AGENT LOOP (DEBUG MODE)
-    max_actions = 20
+    max_actions = 6
     while not maze.solved and maze.action_count < max_actions:
         print(f"\n{'=' * 50}")
         print(f"ITERATION {maze.action_count + 1}")
@@ -304,7 +304,7 @@ def run_agent_production(maze_number: int = 1) -> None:
     total_output_tokens = 0
 
     # Define tool executor function
-    def execute_tool(tool_name: str, tool_input: dict) -> str:
+    def execute_tool(tool_name: str, _tool_input: dict) -> str:
         """Execute a tool and return the result as a string."""
         if tool_name == "get_doors":
             print("   🔧 Tool used: get_doors")
@@ -313,7 +313,7 @@ def run_agent_production(maze_number: int = 1) -> None:
         return f"Unknown tool: {tool_name}"
 
     # THE AUTONOMOUS AGENT LOOP (PRODUCTION MODE)
-    max_actions = 20
+    max_actions = 6
     while not maze.solved and maze.action_count < max_actions:
         print(f"\n{'=' * 50}")
         print(f"ACTION {maze.action_count + 1}")
@@ -331,7 +331,11 @@ What do you do?"""
         # Call Claude API with tools - it handles the tool use loop internally
         print("🤖 Calling Claude API...")
         result = call_claude_via_api(
-            messages=messages, timeout=60, system=SYSTEM_PROMPT, tools=TOOLS, tool_executor=execute_tool
+            messages=messages,
+            timeout=60,
+            system=SYSTEM_PROMPT,
+            tools=TOOLS,
+            tool_executor=execute_tool,
         )
 
         if not result:
@@ -396,29 +400,33 @@ What do you do?"""
 
     # Build token summary
     token_summary = f"""
-{'=' * 50}
+{"=" * 50}
 TOKEN USAGE SUMMARY
-{'=' * 50}
+{"=" * 50}
 Input tokens:  {total_input_tokens:,}
 Output tokens: {total_output_tokens:,}
 Total tokens:  {total_input_tokens + total_output_tokens:,}
-{'=' * 50}
+{"=" * 50}
 """
 
     if not maze.solved:
         print(f"❌ Agent failed to solve the maze in {max_actions} actions.")
 
-        with open("messages.txt", "w", encoding="utf-8") as f:
-            f.write("\n".join(str(message) for message in messages))
-            f.write(f"\n\nMaze failed to solve in {max_actions} actions.")
-            f.write(token_summary)
+        Path("messages.txt").write_text(
+            "\n".join(str(message) for message in messages)
+            + f"\n\nMaze failed to solve in {max_actions} actions."
+            + token_summary,
+            encoding="utf-8",
+        )
     else:
         print(f"✅ Maze solved in {maze.action_count} action(s)!")
 
-        with open("messages.txt", "w", encoding="utf-8") as f:
-            f.write("\n".join(str(message) for message in messages))
-            f.write(f"\n\nMaze solved in {maze.action_count} action(s)!")
-            f.write(token_summary)
+        Path("messages.txt").write_text(
+            "\n".join(str(message) for message in messages)
+            + f"\n\nMaze solved in {maze.action_count} action(s)!"
+            + token_summary,
+            encoding="utf-8",
+        )
 
     # Print token usage summary
     print(token_summary)

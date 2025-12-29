@@ -178,8 +178,8 @@ class TestMazeState:
         description = state.get_status_description()
 
         assert "You are in a room" in description
-        assert "1 door(s) visible" in description
-        assert "NORTH" in description
+        # Status description is deliberately minimal - LLM must use get_doors() tool
+        assert "door" not in description.lower() or "searched for secrets" in description
 
     def test_get_status_description_no_doors(self) -> None:
         """Test status description with no visible doors."""
@@ -187,7 +187,8 @@ class TestMazeState:
         description = state.get_status_description()
 
         assert "You are in a room" in description
-        assert "0 door(s) visible" in description
+        # Status description is deliberately minimal - doesn't reveal door count
+        assert "door" not in description.lower() or "searched for secrets" in description
 
     def test_get_status_description_with_secrets(self) -> None:
         """Test status description after revealing secrets."""

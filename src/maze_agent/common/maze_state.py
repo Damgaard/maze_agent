@@ -155,13 +155,12 @@ class MazeState:
                 "door_count": door_count,
                 "available_directions": available_directions,
             }
-        else:
-            return {
-                "success": True,
-                "message": f"There are {door_count} visible door(s). You can see doors to the: {directions_str}",
-                "door_count": door_count,
-                "available_directions": available_directions,
-            }
+        return {
+            "success": True,
+            "message": f"There are {door_count} visible door(s). You can see doors to the: {directions_str}",
+            "door_count": door_count,
+            "available_directions": available_directions,
+        }
 
     def get_status_description(self) -> str:
         """Generate a description of the current game state for the player.
