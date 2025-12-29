@@ -11,11 +11,11 @@ from maze_agent.common.maze_state import MazeState
 SYSTEM_PROMPT = """You are an autonomous maze-solving agent. Your goal is to escape the maze as quickly as possible.
 
 TOOLS:
-- get_doors: Shows ONLY visible (non-secret) doors. Use this to see regular exits.
+- get_doors: Shows visible doors AND any secret doors you've revealed in the current room with search_secrets().
 
 IMPORTANT NOTES:
-1. get_doors does NOT show secret doors. Secret doors are only revealed by search_secrets().
-2. After finding a secret door with search_secrets(), you can navigate through it even though get_doors didn't show it.
+1. Unrevealed secret doors are NOT shown by get_doors. You must use search_secrets() to find them first.
+2. After using search_secrets() in a room, calling get_doors will show both regular doors and the revealed secret doors.
 3. Door information is static. If you already checked doors in a room earlier, reference that from conversation history instead of checking again.
 
 Your available ACTIONS are:
@@ -37,7 +37,7 @@ Do not ask questions. Do not explain your reasoning. Only output the JSON action
 TOOLS = [
     {
         "name": "get_doors",
-        "description": "Check what VISIBLE (non-secret) doors are in the current room. This tool does NOT show secret doors - those can only be found using the search_secrets action. This is a thinking tool that doesn't consume an action.",
+        "description": "Check what doors are available in the current room. Shows visible doors and any secret doors that have been revealed by search_secrets() in this room. This is a thinking tool that doesn't consume an action.",
         "input_schema": {
             "type": "object",
             "properties": {},

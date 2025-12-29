@@ -116,33 +116,52 @@ class MazeState:
     def get_doors(self) -> dict[str, Any]:
         """Check what doors are available in the current room.
 
-        This is a thinking tool that reveals ONLY non-secret door information.
-        Secret doors must be found via search_secrets() and are NOT shown by this tool.
+        This is a thinking tool that shows:
+        - All visible (non-secret) doors
+        - Secret doors that have been revealed by search_secrets() in this room
 
         Returns:
-            Result dictionary with door information (excluding secret doors)
+            Result dictionary with door information
 
         """
-        # Get only visible (non-secret) doors
+        # Get visible (non-secret) doors
         visible_doors = self.maze.get_visible_doors(self.current_room)
         door_count = self.maze.count_visible_doors(self.current_room)
 
-        # List available directions (non-secret only)
+        # List available directions
         available_directions = []
         for direction, destination in visible_doors.items():
             if destination is not None:
                 available_directions.append(direction)
 
+        # Add revealed secret doors
+        if self.secrets_revealed:
+            secret_doors = self.maze.get_secret_doors(self.current_room)
+            for direction, destination in secret_doors.items():
+                if destination is not None and direction not in available_directions:
+                    available_directions.append(direction)
+                    door_count += 1
+
         if door_count == 0:
             return {"success": True, "message": "There are no visible doors in this room."}
 
         directions_str = ", ".join(available_directions).upper()
-        return {
-            "success": True,
-            "message": f"There are {door_count} visible door(s). You can see doors to the: {directions_str}",
-            "door_count": door_count,
-            "available_directions": available_directions,
-        }
+
+        # Include note if secret doors are present
+        if self.secrets_revealed and any(self.maze.get_secret_doors(self.current_room).values()):
+            return {
+                "success": True,
+                "message": f"There are {door_count} door(s) available (including revealed secret doors). You can go: {directions_str}",
+                "door_count": door_count,
+                "available_directions": available_directions,
+            }
+        else:
+            return {
+                "success": True,
+                "message": f"There are {door_count} visible door(s). You can see doors to the: {directions_str}",
+                "door_count": door_count,
+                "available_directions": available_directions,
+            }
 
     def get_status_description(self) -> str:
         """Generate a description of the current game state for the player.
