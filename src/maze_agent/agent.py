@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from maze_agent.common.action_parser import parse_action
-from maze_agent.common.claude_client import call_claude_via_api, get_model_info
+from maze_agent.common.claude_client import call_claude_via_api, get_model_info, reset_api_call_counter
 from maze_agent.common.maze_state import MazeState
 
 # System prompt template
@@ -64,6 +64,9 @@ def run_agent_debug(maze_number: int = 1) -> None:
     print(f"Loading Maze {maze_number}")
     print("Step-by-step interactive mode\n")
     print("=" * 50)
+
+    # Reset API call counter at start of session
+    reset_api_call_counter()
 
     # Initialize maze state
     maze = MazeState(maze_number=maze_number)
@@ -292,6 +295,9 @@ def run_agent_production(maze_number: int = 1) -> None:
     print(f"Using Claude Model: {model_name} ({model_version})")
     print("Fully autonomous API-based execution\n")
     print("=" * 50)
+
+    # Reset API call counter at start of session
+    reset_api_call_counter()
 
     # Initialize maze state
     maze = MazeState(maze_number=maze_number)

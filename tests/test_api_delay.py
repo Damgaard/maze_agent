@@ -11,12 +11,14 @@ from maze_agent.common.claude_client import _make_call_with_delay
 
 @pytest.fixture(autouse=True)
 def reset_delay_tracking():
-    """Reset the module-level delay tracking before each test."""
+    """Reset the module-level delay tracking and API call counter before each test."""
     import maze_agent.common.claude_client as client_module
 
     client_module._last_api_call_time = None
+    client_module._api_call_count = 0
     yield
     client_module._last_api_call_time = None
+    client_module._api_call_count = 0
 
 
 @pytest.fixture

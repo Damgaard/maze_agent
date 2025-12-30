@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 # Track last API call time for rate limiting
 _last_api_call_time: float | None = None
 
+# Track API call count for cost protection
+_api_call_count: int = 0
+
 # Model version mappings - hardcoded to avoid unexpected changes
 MODEL_VERSIONS = {
     "haiku": "claude-3-5-haiku-20241022",
@@ -52,25 +55,43 @@ def call_claude_via_cli(prompt: str, timeout: int = 60) -> str | None:
 
 
 def _make_call_with_delay(client: anthropic.Anthropic, *args, **kwargs):
-    """Wrapper for API calls that enforces minimum delay between calls.
+    """Wrapper for API calls that enforces cost protection measures.
 
     This function ensures all API calls go through a central point where:
+    - Maximum API call limit is enforced (raises RuntimeError if exceeded)
     - Minimum delay between calls is enforced
+    - API call counter is incremented
     - Future logging can be added
-    - Rate limiting is managed
 
     Args:
         client: The Anthropic client instance
+        *args: Positional arguments to pass to client.messages.create()
         **kwargs: Keyword arguments to pass to client.messages.create()
 
     Returns:
         The response from client.messages.create()
 
+    Raises:
+        RuntimeError: If MAX_API_CALLS limit is exceeded
+
     """
-    global _last_api_call_time
+    global _last_api_call_time, _api_call_count
 
     # Load delay from environment (default 1.0 second)
     min_delay = float(os.environ.get("MINIMAL_API_CALL_DELAY", "2.5"))
+
+    # Load max API calls limit from environment (default 10)
+    max_api_calls = int(os.environ.get("MAX_API_CALLS", "10"))
+
+    # Check if we've exceeded the limit
+    if _api_call_count >= max_api_calls:
+        raise RuntimeError(
+            f"API call limit exceeded: {_api_call_count}/{max_api_calls} calls made. "
+            "This is a cost protection measure. Increase MAX_API_CALLS in .env if needed."
+        )
+
+    # Increment counter
+    _api_call_count += 1
 
     # Enforce delay if this isn't the first call
     if _last_api_call_time is not None:
@@ -89,6 +110,17 @@ def _make_call_with_delay(client: anthropic.Anthropic, *args, **kwargs):
     _last_api_call_time = time.perf_counter()
 
     return response
+
+
+def reset_api_call_counter():
+    """Reset the API call counter.
+
+    Should be called at the start of each maze solving session
+    to ensure accurate counting per session.
+
+    """
+    global _api_call_count
+    _api_call_count = 0
 
 
 def call_claude_via_api(
