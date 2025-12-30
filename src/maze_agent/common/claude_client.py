@@ -2,10 +2,14 @@
 
 import os
 import subprocess
+import time
 from collections.abc import Callable
 
 import anthropic
 from dotenv import load_dotenv
+
+# Track last API call time for rate limiting
+_last_api_call_time: float | None = None
 
 # Model version mappings - hardcoded to avoid unexpected changes
 MODEL_VERSIONS = {
@@ -45,6 +49,46 @@ def call_claude_via_cli(prompt: str, timeout: int = 60) -> str | None:
     except Exception as e:
         print(f"Error: {e}")
         return None
+
+
+def _make_call_with_delay(client: anthropic.Anthropic, *args, **kwargs):
+    """Wrapper for API calls that enforces minimum delay between calls.
+
+    This function ensures all API calls go through a central point where:
+    - Minimum delay between calls is enforced
+    - Future logging can be added
+    - Rate limiting is managed
+
+    Args:
+        client: The Anthropic client instance
+        **kwargs: Keyword arguments to pass to client.messages.create()
+
+    Returns:
+        The response from client.messages.create()
+
+    """
+    global _last_api_call_time
+
+    # Load delay from environment (default 1.0 second)
+    min_delay = float(os.environ.get("MINIMAL_API_CALL_DELAY", "2.5"))
+
+    # Enforce delay if this isn't the first call
+    if _last_api_call_time is not None:
+        elapsed = time.perf_counter() - _last_api_call_time
+        if elapsed < min_delay:
+            sleep_time = min_delay - elapsed
+            # Print message if sleeping for at least 10% of max delay (helps debugging)
+            if sleep_time >= min_delay * 0.1:
+                print(f"⏱️  API rate limit: sleeping {sleep_time:.2f}s")
+            time.sleep(sleep_time)
+
+    # Make the actual API call
+    response = client.messages.create(*args, **kwargs)
+
+    # Update last call time after the API call completes
+    _last_api_call_time = time.perf_counter()
+
+    return response
 
 
 def call_claude_via_api(
@@ -122,7 +166,7 @@ def call_claude_via_api(
         if tools:
             api_params["tools"] = tools
 
-        response = client.messages.create(**api_params)
+        response = _make_call_with_delay(client, **api_params)
 
         # Track token usage
         if hasattr(response, "usage"):
