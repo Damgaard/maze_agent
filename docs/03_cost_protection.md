@@ -1,6 +1,6 @@
 # Cost Protection
 
-This service makes API calls to LLMs. Each API call costs money. This document outlines strategies to prevent accidental, unneccessary spend.
+This service makes API calls to LLMs. Each API call costs money. This document outlines strategies to prevent accidental, unnecessary spend.
 
 ## API Delay
 
@@ -16,4 +16,4 @@ For each maze there is a maximum amount of API calls, as defined by MAX_API_CALL
 
 ## Test protections
 
-Running tests should not make unmocked calls to the LLM. There are 2 levels of protection against this. First the system always overrides the keys at start of pytest, to ensure that if the key is attempted used it will be used with an invalid value. Secondly, the API function to call calude is auto mocked. Should any test needs to mock it with a particular result, then it can remock the test to return another result.
+Running tests should not make unmocked calls to the LLM. There are 2 levels of protection against this. First the system always overrides the keys at start of pytest, to ensure that if the key is attempted used it will be used with an invalid value. Secondly, the API function to call claude is auto mocked. Should any test needs to mock it with a particular result, then it can remock the test to return another result.
