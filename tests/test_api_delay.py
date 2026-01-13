@@ -6,14 +6,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import maze_agent.common.claude_client as client_module
 from maze_agent.common.claude_client import _make_call_with_delay
 
 
 @pytest.fixture(autouse=True)
-def reset_delay_tracking():
+def reset_delay_tracking() -> None:
     """Reset the module-level delay tracking and API call counter before each test."""
-    import maze_agent.common.claude_client as client_module
-
     client_module._last_api_call_time = None
     client_module._api_call_count = 0
     yield
@@ -22,14 +21,14 @@ def reset_delay_tracking():
 
 
 @pytest.fixture
-def mock_client():
+def mock_client() -> MagicMock:
     """Create a mock Anthropic client."""
     client = MagicMock()
     client.messages.create.return_value = MagicMock(content=[MagicMock(text="Test response")])
     return client
 
 
-def test_first_call_has_no_delay(mock_client):
+def test_first_call_has_no_delay(mock_client: MagicMock) -> None:
     """First API call should not have artificial delay."""
     with patch.dict(os.environ, {"MINIMAL_API_CALL_DELAY": "1.0"}):
         start = time.perf_counter()
@@ -41,7 +40,7 @@ def test_first_call_has_no_delay(mock_client):
         assert mock_client.messages.create.called
 
 
-def test_second_call_respects_delay(mock_client):
+def test_second_call_respects_delay(mock_client: MagicMock) -> None:
     """Second API call should enforce minimum delay."""
     with patch.dict(os.environ, {"MINIMAL_API_CALL_DELAY": "0.5"}):
         # First call
@@ -57,7 +56,7 @@ def test_second_call_respects_delay(mock_client):
         assert mock_client.messages.create.call_count == 2
 
 
-def test_multiple_rapid_calls_accumulate_delays(mock_client):
+def test_multiple_rapid_calls_accumulate_delays(mock_client: MagicMock) -> None:
     """Multiple rapid calls should each enforce the delay."""
     with patch.dict(os.environ, {"MINIMAL_API_CALL_DELAY": "0.3"}):
         # First call
@@ -74,7 +73,7 @@ def test_multiple_rapid_calls_accumulate_delays(mock_client):
         assert mock_client.messages.create.call_count == 4
 
 
-def test_delay_uses_environment_variable(mock_client):
+def test_delay_uses_environment_variable(mock_client: MagicMock) -> None:
     """Delay should use the value from MINIMAL_API_CALL_DELAY environment variable."""
     with patch.dict(os.environ, {"MINIMAL_API_CALL_DELAY": "0.2"}):
         # First call
@@ -90,7 +89,7 @@ def test_delay_uses_environment_variable(mock_client):
         assert elapsed < 0.4  # Should not delay longer than necessary
 
 
-def test_arguments_passed_through_correctly(mock_client):
+def test_arguments_passed_through_correctly(mock_client: MagicMock) -> None:
     """Arguments should be passed through to client.messages.create()."""
     with patch.dict(os.environ, {"MINIMAL_API_CALL_DELAY": "0.1"}):
         test_kwargs = {
@@ -106,7 +105,7 @@ def test_arguments_passed_through_correctly(mock_client):
         mock_client.messages.create.assert_called_once_with(**test_kwargs)
 
 
-def test_default_delay_when_env_not_set(mock_client):
+def test_default_delay_when_env_not_set(mock_client: MagicMock) -> None:
     """Should use default 1.0 second delay when environment variable not set."""
     # Remove the env var if it exists
     env_without_delay = {k: v for k, v in os.environ.items() if k != "MINIMAL_API_CALL_DELAY"}
@@ -124,7 +123,7 @@ def test_default_delay_when_env_not_set(mock_client):
         assert elapsed >= 0.95
 
 
-def test_calls_separated_by_delay_dont_add_extra_wait(mock_client):
+def test_calls_separated_by_delay_dont_add_extra_wait(mock_client: MagicMock) -> None:
     """If calls are naturally separated by more than the delay, no extra wait should occur."""
     with patch.dict(os.environ, {"MINIMAL_API_CALL_DELAY": "0.2"}):
         # First call

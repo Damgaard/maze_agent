@@ -54,8 +54,8 @@ def call_claude_via_cli(prompt: str, timeout: int = 60) -> str | None:
         return None
 
 
-def _make_call_with_delay(client: anthropic.Anthropic, *args, **kwargs):
-    """Wrapper for API calls that enforces cost protection measures.
+def _make_call_with_delay(client: anthropic.Anthropic, *args: object, **kwargs: object) -> object:
+    """Enforce cost protection measures for API calls.
 
     This function ensures all API calls go through a central point where:
     - Maximum API call limit is enforced (raises RuntimeError if exceeded)
@@ -87,7 +87,7 @@ def _make_call_with_delay(client: anthropic.Anthropic, *args, **kwargs):
     if _api_call_count >= max_api_calls:
         raise RuntimeError(
             f"API call limit exceeded: {_api_call_count}/{max_api_calls} calls made. "
-            "This is a cost protection measure. Increase MAX_API_CALLS in .env if needed."
+            "This is a cost protection measure. Increase MAX_API_CALLS in .env if needed.",
         )
 
     # Increment counter
@@ -112,7 +112,7 @@ def _make_call_with_delay(client: anthropic.Anthropic, *args, **kwargs):
     return response
 
 
-def reset_api_call_counter():
+def reset_api_call_counter() -> None:
     """Reset the API call counter.
 
     Should be called at the start of each maze solving session

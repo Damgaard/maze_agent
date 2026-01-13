@@ -5,11 +5,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import maze_agent.common.claude_client as client_module
 from maze_agent.common.claude_client import _make_call_with_delay, reset_api_call_counter
 
 
 @pytest.fixture(autouse=True)
-def reset_counter_before_test():
+def reset_counter_before_test() -> None:
     """Reset the API call counter before each test."""
     reset_api_call_counter()
     yield
@@ -17,25 +18,21 @@ def reset_counter_before_test():
 
 
 @pytest.fixture
-def mock_client():
+def mock_client() -> MagicMock:
     """Create a mock Anthropic client."""
     client = MagicMock()
     client.messages.create.return_value = MagicMock(content=[MagicMock(text="Test response")])
     return client
 
 
-def test_counter_starts_at_zero():
+def test_counter_starts_at_zero() -> None:
     """API call counter should start at 0 after reset."""
-    import maze_agent.common.claude_client as client_module
-
     reset_api_call_counter()
     assert client_module._api_call_count == 0
 
 
-def test_counter_increments_with_each_call(mock_client):
+def test_counter_increments_with_each_call(mock_client: MagicMock) -> None:
     """Counter should increment with each API call."""
-    import maze_agent.common.claude_client as client_module
-
     with patch.dict(os.environ, {"MAX_API_CALLS": "10", "MINIMAL_API_CALL_DELAY": "0"}):
         # Make 3 calls
         for i in range(3):
@@ -43,7 +40,7 @@ def test_counter_increments_with_each_call(mock_client):
             assert client_module._api_call_count == i + 1
 
 
-def test_exception_raised_when_limit_exceeded(mock_client):
+def test_exception_raised_when_limit_exceeded(mock_client: MagicMock) -> None:
     """Should raise RuntimeError when MAX_API_CALLS is exceeded."""
     with patch.dict(os.environ, {"MAX_API_CALLS": "3", "MINIMAL_API_CALL_DELAY": "0"}):
         # Make 3 successful calls
@@ -58,7 +55,7 @@ def test_exception_raised_when_limit_exceeded(mock_client):
         assert "3/3 calls made" in str(exc_info.value)
 
 
-def test_exception_message_contains_useful_info(mock_client):
+def test_exception_message_contains_useful_info(mock_client: MagicMock) -> None:
     """Exception message should contain count, limit, and helpful guidance."""
     with patch.dict(os.environ, {"MAX_API_CALLS": "2", "MINIMAL_API_CALL_DELAY": "0"}):
         # Make 2 calls
@@ -76,10 +73,8 @@ def test_exception_message_contains_useful_info(mock_client):
         assert ".env" in error_message
 
 
-def test_reset_function_works(mock_client):
+def test_reset_function_works(mock_client: MagicMock) -> None:
     """reset_api_call_counter() should reset the counter to 0."""
-    import maze_agent.common.claude_client as client_module
-
     with patch.dict(os.environ, {"MAX_API_CALLS": "10", "MINIMAL_API_CALL_DELAY": "0"}):
         # Make some calls
         for _ in range(3):
@@ -97,7 +92,7 @@ def test_reset_function_works(mock_client):
         assert client_module._api_call_count == 1
 
 
-def test_limit_uses_environment_variable(mock_client):
+def test_limit_uses_environment_variable(mock_client: MagicMock) -> None:
     """Limit should use the value from MAX_API_CALLS environment variable."""
     with patch.dict(os.environ, {"MAX_API_CALLS": "5", "MINIMAL_API_CALL_DELAY": "0"}):
         # Should be able to make 5 calls
@@ -111,7 +106,7 @@ def test_limit_uses_environment_variable(mock_client):
         assert "5/5 calls made" in str(exc_info.value)
 
 
-def test_default_limit_is_10(mock_client):
+def test_default_limit_is_10(mock_client: MagicMock) -> None:
     """Should use default limit of 10 when MAX_API_CALLS env var not set."""
     # Remove the env var if it exists
     env_without_max = {k: v for k, v in os.environ.items() if k != "MAX_API_CALLS"}
@@ -130,10 +125,8 @@ def test_default_limit_is_10(mock_client):
             assert "10/10 calls made" in str(exc_info.value)
 
 
-def test_counter_increments_before_api_call(mock_client):
+def test_counter_increments_before_api_call(mock_client: MagicMock) -> None:
     """Counter should increment even if API call fails."""
-    import maze_agent.common.claude_client as client_module
-
     # Make the API call raise an exception
     mock_client.messages.create.side_effect = Exception("API Error")
 
