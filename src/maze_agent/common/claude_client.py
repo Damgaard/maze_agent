@@ -123,6 +123,80 @@ def reset_api_call_counter() -> None:
     _api_call_count = 0
 
 
+def _handle_tool_use(
+    response: anthropic.types.Message,
+    tool_executor: Callable[[str, dict], str],
+    message_list: list[dict],
+) -> bool:
+    """Handle tool use from Claude response.
+
+    Args:
+        response: The API response
+        tool_executor: The tool executor function
+        message_list: The messages list to update
+
+    Returns:
+        True if tool was executed and loop should continue, False otherwise
+
+    """
+    if response.stop_reason != "tool_use" or not tool_executor:
+        return False
+
+    # Extract tool use from response
+    tool_use_block = None
+    for block in response.content:
+        if block.type == "tool_use":
+            tool_use_block = block
+            break
+
+    if not tool_use_block:
+        return False
+
+    # Execute the tool
+    tool_name = tool_use_block.name
+    tool_input = tool_use_block.input
+    tool_result = tool_executor(tool_name, tool_input)
+
+    # Add assistant's response with tool use to messages
+    message_list.append({"role": "assistant", "content": response.content})
+
+    # Add tool result to messages
+    message_list.append(
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "tool_result",
+                    "tool_use_id": tool_use_block.id,
+                    "content": tool_result,
+                },
+            ],
+        },
+    )
+
+    return True
+
+
+def _extract_text_from_response(response: anthropic.types.Message) -> str | None:
+    """Extract text content from API response.
+
+    Args:
+        response: The API response
+
+    Returns:
+        The extracted text or None
+
+    """
+    if not response.content or len(response.content) == 0:
+        return None
+
+    for block in response.content:
+        if hasattr(block, "text"):
+            return block.text
+
+    return None
+
+
 def call_claude_via_api(
     prompt: str | list[dict[str, str]] | None = None,
     timeout: int = 60,
@@ -206,41 +280,9 @@ def call_claude_via_api(
             total_output_tokens += response.usage.output_tokens
 
         # Check if Claude wants to use a tool
-        if response.stop_reason == "tool_use" and tool_executor:
+        if _handle_tool_use(response, tool_executor, message_list):
             tool_call_count += 1
-
-            # Extract tool use from response
-            tool_use_block = None
-            for block in response.content:
-                if block.type == "tool_use":
-                    tool_use_block = block
-                    break
-
-            if tool_use_block:
-                # Execute the tool
-                tool_name = tool_use_block.name
-                tool_input = tool_use_block.input
-                tool_result = tool_executor(tool_name, tool_input)
-
-                # Add assistant's response with tool use to messages
-                message_list.append({"role": "assistant", "content": response.content})
-
-                # Add tool result to messages
-                message_list.append(
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "tool_result",
-                                "tool_use_id": tool_use_block.id,
-                                "content": tool_result,
-                            },
-                        ],
-                    },
-                )
-
-                # Continue loop to get Claude's response after seeing tool result
-                continue
+            continue
 
         # No more tool use (or different stop reason) - we have the final response
         # Add final assistant response to messages
@@ -248,12 +290,7 @@ def call_claude_via_api(
         break
 
     # Extract text from final response
-    text = None
-    if response.content and len(response.content) > 0:
-        for block in response.content:
-            if hasattr(block, "text"):
-                text = block.text
-                break
+    text = _extract_text_from_response(response)
 
     return {
         "text": text,

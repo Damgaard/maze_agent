@@ -280,6 +280,39 @@ Failed to solve maze in {max_actions} actions.
     print(f"{'=' * 50}\n")
 
 
+def _execute_agent_action(maze: MazeState, action: dict) -> None:
+    """Execute a parsed action in the maze.
+
+    Args:
+        maze: The maze state
+        action: The parsed action dictionary
+
+    """
+    if action["action"] == "navigate":
+        direction = action.get("direction", "unknown")
+        action_description = f"Navigate {direction.upper()}"
+        print(f"\n✓ Executing: {action_description}")
+
+        result = maze.navigate(direction)
+
+        if result["success"]:
+            print(f"   {result['message']}")
+            if result.get("reached_exit", False):
+                print("🎉 MAZE SOLVED! Agent found the exit!\n")
+        else:
+            print(f"   ❌ {result['message']}")
+
+    elif action["action"] == "search_secrets":
+        action_description = "Search for secrets"
+        print(f"\n🔍 Executing: {action_description}")
+
+        result = maze.search_secrets()
+        print(f"   {result['message']}")
+
+    else:
+        print(f"⚠️  Unknown action: {action['action']}")
+
+
 def run_agent_production(maze_number: int = 1) -> None:
     """Run the agent in production mode (API-based).
 
@@ -373,33 +406,10 @@ What do you do?"""
         print(f"🎯 Parsed action: {json.dumps(action, indent=2)}")
 
         # Execute the action and update state
-        action_description = ""
+        _execute_agent_action(maze, action)
 
-        if action["action"] == "navigate":
-            direction = action.get("direction", "unknown")
-            action_description = f"Navigate {direction.upper()}"
-            print(f"\n✓ Executing: {action_description}")
-
-            result = maze.navigate(direction)
-
-            if result["success"]:
-                print(f"   {result['message']}")
-                if result.get("reached_exit", False):
-                    print("🎉 MAZE SOLVED! Agent found the exit!\n")
-                    break
-            else:
-                print(f"   ❌ {result['message']}")
-
-        elif action["action"] == "search_secrets":
-            action_description = "Search for secrets"
-            print(f"\n🔍 Executing: {action_description}")
-
-            result = maze.search_secrets()
-            print(f"   {result['message']}")
-
-        else:
-            print(f"⚠️  Unknown action: {action['action']}")
-            action_description = f"Unknown action: {action['action']}"
+        if maze.solved:
+            break
 
     # Final results
     print(f"\n{'=' * 50}")
