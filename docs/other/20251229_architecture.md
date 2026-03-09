@@ -1,4 +1,5 @@
 # Architecture Review - Maze Agent Project
+
 **Date:** 2025-12-29
 **Reviewer:** Claude Sonnet 4.5
 **Focus Areas:** Readability, Maintainability, Clarity of Thought
@@ -12,6 +13,7 @@ This maze-solving agent project demonstrates **clean, well-structured architectu
 **Overall Grade: A-**
 
 **Strengths:**
+
 - Excellent separation of concerns across three distinct layers
 - Clear, self-documenting code with minimal comments needed
 - Well-designed dual execution modes (debug/production)
@@ -19,6 +21,7 @@ This maze-solving agent project demonstrates **clean, well-structured architectu
 - Effective state management pattern
 
 **Areas for Improvement:**
+
 - Error handling could be more robust
 - Some code duplication between debug and production modes
 - Tool use loop has a hardcoded limit that could be configurable
@@ -56,6 +59,7 @@ The project follows a **clean layered architecture** that provides excellent sep
 ```
 
 **Assessment:** This is textbook good architecture. Each layer has a single, well-defined responsibility:
+
 - **CLI layer** handles only user interface concerns
 - **Agent layer** orchestrates the autonomous loop without knowing implementation details
 - **Common layer** provides reusable, stateless business logic
@@ -67,9 +71,11 @@ The project follows a **clean layered architecture** that provides excellent sep
 ### 2. Design Patterns Implementation
 
 #### State Pattern (MazeState)
+
 **Location:** `maze_state.py:8-180`
 
 The `MazeState` class encapsulates all game state in a single, cohesive object:
+
 ```python
 class MazeState:
     def __init__(self, maze_number: int = 1):
@@ -88,9 +94,11 @@ class MazeState:
 **Consideration:** The `secrets_revealed` flag is room-specific but stored as a single boolean. This works for the current implementation but could be limiting if you wanted to track which rooms have been searched across the entire maze. However, this is **intentionally simple** for the learning project scope.
 
 #### Facade Pattern (claude_client.py)
+
 **Location:** `claude_client.py:50-188`
 
 The `call_claude_via_api()` function provides a clean abstraction over the Anthropic API:
+
 ```python
 def call_claude_via_api(
     prompt: str | list[dict[str, str]] | None = None,
@@ -103,6 +111,7 @@ def call_claude_via_api(
 ```
 
 **Assessment:** Good abstraction that hides API complexity. The function handles:
+
 - Tool use loop internally
 - Token tracking
 - Message history management
@@ -118,6 +127,7 @@ max_tool_calls = 2  # ❌ Hardcoded magic number
 ```
 
 **Recommendation:**
+
 ```python
 def call_claude_via_api(
     ...,
@@ -126,9 +136,11 @@ def call_claude_via_api(
 ```
 
 #### Strategy Pattern (Debug vs Production Modes)
+
 **Location:** `agent.py:50-448`
 
 Two distinct execution strategies share the same underlying logic:
+
 - `run_agent_debug()` - Interactive, file-based communication
 - `run_agent_production()` - Autonomous, API-based communication
 
@@ -137,6 +149,7 @@ Two distinct execution strategies share the same underlying logic:
 **Concern:** There's significant code duplication between the two modes (~200 lines each with substantial overlap). The action execution logic (lines 174-222 in debug, 372-397 in production) is nearly identical.
 
 **Code Duplication Example:**
+
 ```python
 # Debug mode (lines 174-210)
 if action["action"] == "navigate":
@@ -180,6 +193,7 @@ def _execute_action(action: dict, maze: MazeState) -> tuple[str, dict]:
 ### 3. Data Flow and State Management
 
 #### Production Mode Flow
+
 ```
 User → CLI → Agent Loop → Claude API → Tool Execution → State Update
                  ↑____________________________________________|
@@ -187,6 +201,7 @@ User → CLI → Agent Loop → Claude API → Tool Execution → State Update
 ```
 
 **Assessment:** Clean, unidirectional data flow. Each iteration:
+
 1. Builds current state description
 2. Sends to Claude
 3. Parses response
@@ -197,6 +212,7 @@ User → CLI → Agent Loop → Claude API → Tool Execution → State Update
 **Strength:** The conversation history is maintained as an immutable append-only list, making debugging and replay trivial.
 
 #### Debug Mode Flow
+
 ```
 User → CLI → Agent → status.txt → [Human + Claude Code] → response.txt → Agent
 ```
@@ -212,9 +228,11 @@ User → CLI → Agent → status.txt → [Human + Claude Code] → response.txt
 ### 4. Code Quality and Readability
 
 #### Type Hints
+
 **Overall Grade: A**
 
 The codebase uses comprehensive type hints throughout:
+
 ```python
 def navigate(self, direction: str) -> dict[str, Any]:
 def parse_action(response: str) -> dict[str, Any] | None:
@@ -243,9 +261,11 @@ def navigate(self, direction: str) -> NavigationResult:
 This would enable better IDE autocomplete and type checking.
 
 #### Docstrings
+
 **Overall Grade: A-**
 
 Most functions have clear Google-style docstrings:
+
 ```python
 def get_current_room_info(self) -> dict[str, Any]:
     """Get information about the current room visible to the player.
@@ -275,9 +295,11 @@ def parse_action(response: str) -> dict[str, Any] | None:
 This is actually well-documented! Most functions meet this standard.
 
 #### Variable Naming
+
 **Overall Grade: A**
 
 Variable names are clear, descriptive, and follow Python conventions:
+
 ```python
 total_input_tokens = 0
 current_room = self.maze.get_start_room()
@@ -288,9 +310,11 @@ action_description = f"Navigate {direction.upper()}"
 **Strength:** No abbreviations or unclear names. The code reads like prose.
 
 #### Code Comments
+
 **Overall Grade: A**
 
 Comments are used sparingly and only where needed:
+
 ```python
 # Tool use loop - keep calling until we get a final text response
 # Limit to max 2 tool calls to prevent infinite loops
@@ -300,6 +324,7 @@ max_tool_calls = 2
 **Strength:** The code is largely self-documenting. Comments explain **why**, not **what**, which is the gold standard.
 
 **Good example:**
+
 ```python
 # Reset secrets for new room (maze_state.py:80)
 self.secrets_revealed = False
@@ -318,21 +343,27 @@ This is the **weakest area** of the codebase. Error handling is inconsistent and
 #### Missing Exception Handling Examples:
 
 **1. File Operations (agent.py:122-124)**
+
 ```python
 response = response_file.read_text(encoding="utf-8").strip()
 ```
+
 No handling for:
+
 - File encoding errors
 - Permissions issues
 - Disk I/O errors
 
 **2. JSON Parsing (action_parser.py:24)**
+
 ```python
 return json.loads(json_str)
 ```
+
 This can raise `json.JSONDecodeError` but it's not caught. The caller assumes `None` is returned on error, but it will actually crash.
 
 **Fix:**
+
 ```python
 def parse_action(response: str) -> dict[str, Any] | None:
     """Extract action from Claude's response."""
@@ -351,6 +382,7 @@ def parse_action(response: str) -> dict[str, Any] | None:
 ```
 
 **3. Maze File Loading (maze_loader.py:33-45)**
+
 ```python
 def _find_maze_file(self, maze_number: int) -> Path:
     # ...
@@ -362,6 +394,7 @@ def _find_maze_file(self, maze_number: int) -> Path:
 This raises `ValueError`, but the caller in `__init__` doesn't handle it. This means the program will crash with an unhelpful stack trace instead of a user-friendly error message.
 
 **Recommendation:**
+
 ```python
 # In cli/main.py:16
 def main() -> None:
@@ -380,10 +413,13 @@ def main() -> None:
 ```
 
 **4. API Calls (claude_client.py:125)**
+
 ```python
 response = client.messages.create(**api_params)
 ```
+
 No handling for:
+
 - Network errors
 - API rate limiting
 - Authentication failures
@@ -400,16 +436,19 @@ These would crash the program mid-execution, potentially losing conversation sta
 Test coverage exists for critical components but is incomplete.
 
 **What's tested:**
+
 - `action_parser.py` - Comprehensive test suite (107 lines, tests/common/test_action_parser.py)
 - Tests cover edge cases: empty strings, invalid JSON, embedded JSON
 
 **What's not tested:**
+
 - `maze_state.py` - Core game logic (file exists but content not reviewed)
 - `maze_loader.py` - Maze parsing logic (file exists but content not reviewed)
 - `claude_client.py` - API interactions (no tests visible)
 - `agent.py` - Orchestration logic (no tests visible)
 
 **Recommendation:** Add integration tests for the agent loop:
+
 ```python
 def test_agent_solves_simple_maze():
     """Test that agent can solve maze 1 in production mode."""
@@ -435,12 +474,14 @@ if model_name not in MODEL_VERSIONS:
 ```
 
 **Strength:**
+
 - Sensible defaults
 - Clear error messages
 - Model versions are hardcoded (avoiding unexpected API changes)
 
 **Issue:**
 The hardcoded model versions could become stale:
+
 ```python
 MODEL_VERSIONS = {
     "haiku": "claude-3-5-haiku-20241022",
@@ -451,6 +492,7 @@ MODEL_VERSIONS = {
 ```
 
 **Recommendation:** Add a comment explaining why these are hardcoded:
+
 ```python
 # Model versions are hardcoded to ensure consistent behavior.
 # Update these when you intentionally want to upgrade to a new model version.
@@ -467,11 +509,13 @@ MODEL_VERSIONS = {
 **Overall Grade: B**
 
 **Good practices:**
+
 - API keys loaded from `.env` file (not hardcoded)
 - Uses `load_dotenv()` correctly
 - No sensitive data logged
 
 **Concern:**
+
 ```python
 # claude_client.py:31
 subprocess.run(["claude.cmd", "-p", prompt], ...)
@@ -486,25 +530,30 @@ The `prompt` parameter is passed directly to a subprocess without sanitization. 
 ## Maintainability Assessment
 
 ### Ease of Understanding
+
 **Grade: A**
 
 A new developer could understand this codebase quickly:
+
 - Clear file organization
 - Self-documenting code
 - Minimal cognitive load per file
 - Logical progression from CLI → Agent → Common
 
 ### Ease of Modification
+
 **Grade: A-**
 
 Adding new features would be straightforward:
 
 **Example 1: Adding a new action**
+
 1. Add action to `SYSTEM_PROMPT` in `agent.py`
 2. Add handler in `_execute_action()` (after refactoring)
 3. Update `MazeState` with new method if needed
 
 **Example 2: Adding a new LLM provider**
+
 1. Create new function in `claude_client.py` (e.g., `call_openai_via_api()`)
 2. Update `agent.py` to call new function
 3. No changes needed to state management or CLI
@@ -512,14 +561,17 @@ Adding new features would be straightforward:
 **Limitation:** The tight coupling between `agent.py` and the file-based debug mode would make it harder to add new execution modes without duplication.
 
 ### Technical Debt
+
 **Grade: A-**
 
 Very little technical debt:
+
 - No known bugs marked as "TODO"
 - No deprecated code paths
 - No workarounds or hacks (except debug mode, which is intentionally a learning tool)
 
 **Minor debt:**
+
 - Code duplication between debug/production modes
 - Hardcoded `max_tool_calls = 2`
 - Missing error handling in several places
@@ -528,11 +580,13 @@ Very little technical debt:
 
 ## Specific Code Review
 
-### MazeLoader._parse_maze_file()
+### MazeLoader.\_parse_maze_file()
+
 **Location:** `maze_loader.py:47-212`
 **Grade: B+**
 
 This is a **complex function** (165 lines) that does multiple things:
+
 1. Parses header
 2. Parses description
 3. Finds grid
@@ -566,10 +620,12 @@ def _parse_maze_file(self, file_path: Path) -> dict[str, Any]:
 This would improve readability and testability.
 
 ### Agent Loop Structure
+
 **Location:** `agent.py:317-397` (production), `agent.py:107-259` (debug)
 **Grade: A-**
 
 The agent loop is **clear and well-structured**:
+
 ```python
 while not maze.solved and maze.action_count < max_actions:
     # 1. Build prompt
@@ -582,15 +638,18 @@ while not maze.solved and maze.action_count < max_actions:
 **Strength:** Each iteration follows a predictable pattern, making it easy to understand the flow.
 
 **Issue:** The `max_actions = 6` limit is hardcoded. This should be:
+
 - A command-line argument
 - Or derived from maze complexity
 - Or configurable in environment
 
 ### Token Tracking
+
 **Location:** `agent.py:302-410`
 **Grade: A**
 
 Token tracking is **well-implemented**:
+
 ```python
 total_input_tokens = 0
 total_output_tokens = 0
@@ -614,6 +673,7 @@ Total tokens:  {total_input_tokens + total_output_tokens:,}
 **Strength:** This is exactly what you need for cost monitoring in a learning project.
 
 **Suggestion:** Add cost estimation:
+
 ```python
 # Approximate costs (update these with current Anthropic pricing)
 COST_PER_1M_INPUT_TOKENS = 3.00   # $3 per 1M input tokens
@@ -633,11 +693,13 @@ print(f"Estimated cost: ${total_cost:.4f}")
 ### High Priority (Should Fix)
 
 1. **Add proper error handling** throughout the codebase
+
    - Wrap JSON parsing in try/except
    - Handle API errors gracefully
    - Catch file I/O exceptions
 
 2. **Refactor code duplication** between debug and production modes
+
    - Extract `_execute_action()` helper
    - Share common formatting logic
 
@@ -648,10 +710,12 @@ print(f"Estimated cost: ${total_cost:.4f}")
 ### Medium Priority (Nice to Have)
 
 4. **Improve type hints** with TypedDict or dataclasses
+
    - Define structured return types
    - Enable better IDE support
 
 5. **Expand test coverage**
+
    - Integration tests for agent loop
    - Tests for maze_state.py edge cases
    - Mock tests for API interactions
@@ -665,6 +729,7 @@ print(f"Estimated cost: ${total_cost:.4f}")
 7. **Add cost estimation** to token tracking
 
 8. **Add logging** instead of print statements
+
    - Use Python's logging module
    - Allow configurable log levels
 
@@ -678,6 +743,7 @@ print(f"Estimated cost: ${total_cost:.4f}")
 This is a **well-architected learning project** that demonstrates solid software engineering principles:
 
 **Excellence in:**
+
 - Separation of concerns
 - Code clarity and readability
 - Design pattern usage
@@ -685,6 +751,7 @@ This is a **well-architected learning project** that demonstrates solid software
 - Dual execution modes for learning
 
 **Needs improvement in:**
+
 - Error handling
 - Code duplication
 - Test coverage
@@ -695,6 +762,7 @@ This is a **well-architected learning project** that demonstrates solid software
 For a learning project, this is **exemplary**. The architecture is clean, the code is readable, and the design patterns are appropriate. The main gaps (error handling, testing) are typical of early-stage projects and would be natural next steps as the project matures.
 
 The codebase successfully balances:
+
 - **Simplicity** - No over-engineering
 - **Clarity** - Easy to understand
 - **Extensibility** - Easy to add features

@@ -3,6 +3,7 @@
 ## Task
 
 From user request:
+
 > Read @docs\03_cost_protection.md . Go through sections one at a time. Validate if the protection they list is implemented. If not, describe why and create a plan to implement. DO NOT DESCRIBE OR IMPLEMENT MULTIPLE MISSING PROTECTIONS AT ONCE.
 
 This plan addresses the first missing protection: **API Delay** (Section 1 of cost_protection.md)
@@ -12,11 +13,13 @@ This plan addresses the first missing protection: **API Delay** (Section 1 of co
 Implement a minimum delay between API calls to prevent rapid-fire requests that could quickly accumulate costs if there's a bug causing repeated API calls.
 
 According to `docs/03_cost_protection.md:6-7`:
+
 > The system ensures there is a minimum of MINIMAL_API_CALL_DELAY seconds ( defined in envs ) between each API call.
 
 ### Current Status
 
 **NOT IMPLEMENTED** - Missing components:
+
 1. No `MINIMAL_API_CALL_DELAY` environment variable in `.env`
 2. No delay tracking mechanism in `claude_client.py`
 3. No delay enforcement before API calls in `call_claude_via_api()`
@@ -24,14 +27,17 @@ According to `docs/03_cost_protection.md:6-7`:
 ## Implementation Steps
 
 ### Step 1: Add Environment Variable
+
 **Files**: `.env` and `env.example`
 
 Add to `.env`:
+
 ```
 MINIMAL_API_CALL_DELAY=1.0
 ```
 
 Add to `env.example` with documentation:
+
 ```
 # API Rate Limiting (Cost Protection)
 # Minimum delay in seconds between consecutive API calls
@@ -44,9 +50,11 @@ MINIMAL_API_CALL_DELAY=1.0
 **Rationale**: 1 second provides reasonable protection without significantly impacting normal operation. In a runaway loop scenario, this slows down cost accumulation by 1 second per call.
 
 ### Step 2: Add Module-Level Tracking
+
 **File**: `src/maze_agent/common/claude_client.py`
 
 Add at module level (after imports):
+
 ```python
 import time
 
@@ -55,9 +63,11 @@ _last_api_call_time: float | None = None
 ```
 
 ### Step 3: Create Centralized API Call Wrapper
+
 **File**: `src/maze_agent/common/claude_client.py`
 
 Create new function `_make_call_with_delay()` that:
+
 - Accepts `*args` and `**kwargs` to pass through to `client.messages.create()`
 - Enforces minimum delay between calls
 - Provides single point of control for all API calls
@@ -106,10 +116,12 @@ def _make_call_with_delay(client: anthropic.Anthropic, **kwargs):
 **Location**: Insert after `call_claude_via_cli()` function (around line 48), before `call_claude_via_api()`.
 
 ### Step 4: Update call_claude_via_api() to Use Wrapper
+
 **File**: `src/maze_agent/common/claude_client.py`
 **Function**: `call_claude_via_api()` (line 50)
 
 Replace the direct call to `client.messages.create(**api_params)` at line 125 with:
+
 ```python
 response = _make_call_with_delay(client, **api_params)
 ```
@@ -117,9 +129,11 @@ response = _make_call_with_delay(client, **api_params)
 This ensures all API calls go through the centralized wrapper function.
 
 ### Step 5: Add Tests
+
 **File**: Create `tests/test_api_delay.py`
 
 Test cases:
+
 1. First call has no delay
 2. Second call respects minimum delay
 3. Multiple rapid calls accumulate proper delays
@@ -127,6 +141,7 @@ Test cases:
 5. Arguments are correctly passed through to API
 
 **Testing approach**:
+
 - Mock `client.messages.create()` to avoid actual API calls
 - Use `time.perf_counter()` to measure elapsed time
 - Mock `_make_call_with_delay` in existing tests to avoid delays during test runs
@@ -134,59 +149,74 @@ Test cases:
 ## Technical Considerations
 
 ### Centralized API Call Architecture
+
 Using `_make_call_with_delay()` as a wrapper provides:
+
 - **Single point of control**: All API calls go through one function
 - **Extensibility**: Easy to add logging, metrics, or additional rate limiting later
 - **Testability**: Can mock the wrapper function in tests to avoid delays
 - **Maintainability**: Delay logic is isolated and reusable
 
 ### Thread Safety
+
 Current implementation is single-threaded (one agent loop per process). Module-level variable is sufficient. If future versions introduce threading, will need `threading.Lock()` around the timing checks and updates.
 
 ### Precision
+
 Use `time.perf_counter()` for high-precision timing (better than `time.time()` for intervals). This provides sub-millisecond precision for accurate delay enforcement.
 
 ### First Call
+
 First API call should not have artificial delay - only enforce delay between subsequent calls. This is handled by checking if `_last_api_call_time is not None` before enforcing delay.
 
 ### Environment Variable Loading
+
 The wrapper loads `MINIMAL_API_CALL_DELAY` from environment on each call. The parent function `call_claude_via_api()` already calls `load_dotenv()` at line 77, so the environment variable will be available.
 
 ## Potential Risks and Challenges
 
 ### Risk 1: Performance Impact
+
 **Impact**: Low - adds max 1 second delay per call in normal operation
 **Mitigation**: Only enforces delay if calls are within the threshold window
 
 ### Risk 2: Breaking Existing Tests
+
 **Impact**: Medium - existing tests may fail if they make rapid API calls
 **Mitigation**: Tests already mock `call_claude_via_api()`, so delay logic won't affect them
 
 ### Risk 3: Multiple Processes
+
 **Impact**: Low - delay tracking is per-process, not global
 **Mitigation**: Acceptable - each process independently rate-limits itself
 
 ## Testing Approach
 
 ### Unit Tests
+
 Create `tests/test_api_delay.py`:
+
 - Mock anthropic API calls
 - Measure actual time elapsed
 - Verify delay enforcement
 
 ### Manual Testing
+
 Run agent with low delay value (0.5s) and observe timing in logs.
 
 ### Integration Testing
+
 Existing integration tests should continue to pass (they mock the API).
 
 ## Dependencies and Prerequisites
 
 ### Dependencies
+
 - No new dependencies required
 - Uses existing `time` module (Python standard library)
 
 ### Prerequisites
+
 - None - can be implemented immediately
 
 ## Success Criteria
