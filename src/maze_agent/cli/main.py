@@ -16,7 +16,3 @@ def main() -> None:
 
     # Run the agent with the selected mode and maze
     run_agent(production_mode=args.prod, maze_number=args.maze)
-
-
-if __name__ == "__main__":
-    main()

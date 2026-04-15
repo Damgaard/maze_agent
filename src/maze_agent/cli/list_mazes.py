@@ -93,7 +93,3 @@ def list_mazes() -> None:
 def main() -> None:
     """Run the maze-list command."""
     list_mazes()
-
-
-if __name__ == "__main__":
-    main()
