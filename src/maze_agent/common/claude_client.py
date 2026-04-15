@@ -35,7 +35,13 @@ def call_claude_via_cli(prompt: str, timeout: int = 60) -> str | None:
 
     """
     try:
-        result = subprocess.run(["claude.cmd", "-p", prompt], capture_output=True, text=True, timeout=timeout)  # noqa: S603
+        result = subprocess.run(  # noqa: S603
+            ["claude.cmd", "-p", prompt],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
 
         if result.returncode != 0:
             print(f"Error calling Claude: {result.stderr}")
